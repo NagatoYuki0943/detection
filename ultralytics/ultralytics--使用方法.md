@@ -249,6 +249,164 @@ names:
 - **推理速度**使用 COCO 验证集图片推理时间进行平均得到，测试环境使用 [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) 实例。
   复现命令 `yolo val detect data=coco8.yaml batch=1 device=0|cpu`
 
+# [命令行界面](https://docs.ultralytics.com/zh/usage/cli/)
+
+## 语法
+
+```sh
+yolo TASK MODE ARGS
+```
+
+其中：
+
+- `TASK` （可选）是以下之一 `[detect, segment, classify, pose, obb]`。如果未明确传递，YOLO 将尝试推断 `TASK` 。
+- `MODE` （必需）是以下之一 `[train, val, predict, export, track, benchmark]`
+- `ARGS` （可选）是任意数量的自定义 `arg=value` 键值对，例如 `imgsz=320` ，用于覆盖默认值。 有关可用 `ARGS`，请参阅 [配置](https://docs.ultralytics.com/zh/usage/cfg/) 页面和 `defaults.yaml`.
+
+在完整版中查看所有 ARGS [配置指南](https://docs.ultralytics.com/zh/usage/cfg/) 或使用 `yolo cfg`.
+
+> 参数必须以 `arg=val` 对，用等号分隔 `=` 签名，并用空格分隔对。不要使用 `--` 参数前缀或逗号 `,` 在参数之间。
+>
+> - `yolo predict model=yolo11n.pt imgsz=640 conf=0.25`  ✅
+> - `yolo predict model yolo11n.pt imgsz 640 conf 0.25`  ❌
+> - `yolo predict --model yolo11n.pt --imgsz 640 --conf 0.25`  ❌
+
+## 训练
+
+在 COCO8 数据集上训练 YOLO，图像大小为 640，训练 100 个 epoch。有关可用参数的完整列表，请参见[配置](https://docs.ultralytics.com/zh/usage/cfg/)页面。
+
+```sh
+yolo detect train data=coco8.yaml model=yolo11n.pt epochs=100 imgsz=640
+```
+
+恢复中断的训练会话：
+
+```sh
+yolo detect train resume model=last.pt
+```
+
+## 验证
+
+验证 [准确性](https://www.ultralytics.com/glossary/accuracy) 在 COCO8 数据集上训练模型的。由于 `model` 保留其训练 `data` 和参数作为模型属性，因此无需任何参数。
+
+```sh
+yolo detect val model=yolo11n.pt
+```
+
+验证自定义训练的模型：
+
+```sh
+yolo detect val model=path/to/best.pt
+```
+
+## 预测
+
+使用训练好的模型来运行图像预测。
+
+使用官方YOLO11n模型进行预测：
+
+```sh
+yolo detect predict model=yolo11n.pt source='https://ultralytics.com/images/bus.jpg'
+```
+
+使用自定义模型进行预测：
+
+```sh
+yolo detect predict model=path/to/best.pt source='https://ultralytics.com/images/bus.jpg'
+```
+
+## 导出
+
+将官方 YOLO11n 模型导出为 ONNX 格式：
+
+```sh
+yolo export model=yolo11n.pt format=onnx
+```
+
+将自定义训练的模型导出为 ONNX 格式：
+
+```
+yolo export model=path/to/best.pt format=onnx
+```
+
+## 覆盖默认参数
+
+通过在 CLI 中传递参数来覆盖默认参数，例如 `arg=value` 键值对的形式传递参数来覆盖默认参数。
+
+训练一个检测模型 10 个 epochs，学习率为 0.01：
+
+```sh
+yolo detect train data=coco8.yaml model=yolo11n.pt epochs=10 lr0=0.01
+```
+
+使用预训练的分割模型在YouTube视频上以320的图像尺寸进行预测：
+
+```sh
+yolo segment predict model=yolo11n-seg.pt source='https://youtu.be/LNwODJXcvt4' imgsz=320
+```
+
+使用 1 的批量大小和 640 的图像大小验证预训练的检测模型：
+
+```sh
+yolo detect val model=yolo11n.pt data=coco8.yaml batch=1 imgsz=640
+```
+
+## 覆盖默认配置文件
+
+覆盖 `default.yaml` 通过传递一个新文件来完全替换配置文件。 `cfg` 参数，例如 `cfg=custom.yaml`.
+
+为此，首先创建一份副本 `default.yaml` 在您当前的工作目录中使用 `yolo copy-cfg` 命令，它会创建一个 `default_copy.yaml` 文件。
+
+然后，您可以将此文件作为以下内容传递： `cfg=default_copy.yaml` 以及任何其他参数，例如 `imgsz=320` 在此示例中：
+
+```sh
+yolo copy-cfg
+yolo cfg=default_copy.yaml imgsz=320
+```
+
+## 解决方案命令
+
+Ultralytics 通过 CLI 为常见的计算机视觉应用提供即用型解决方案。这些解决方案简化了对象计数、锻炼监控和队列管理等复杂任务的实施。
+
+统计视频或直播流中的物体数量：
+
+```sh
+yolo solutions count show=True
+yolo solutions count source="path/to/video.mp4" # specify video file path
+```
+
+使用姿势模型监控锻炼练习：
+
+```sh
+yolo solutions workout show=True
+yolo solutions workout source="path/to/video.mp4" # specify video file path
+
+# Use keypoints for ab-workouts
+yolo solutions workout kpts=[5, 11, 13] # left side
+yolo solutions workout kpts=[6, 12, 14] # right side
+```
+
+统计指定队列或区域中的物体数量：
+
+```sh
+yolo solutions queue show=True
+yolo solutions queue source="path/to/video.mp4"                                # specify video file path
+yolo solutions queue region="[(20, 400), (1080, 400), (1080, 360), (20, 360)]" # configure queue coordinates
+```
+
+使用 Streamlit 在 Web 浏览器中执行对象检测、实例分割或姿势估计：
+
+```sh
+yolo solutions inference
+yolo solutions inference model="path/to/model.pt" # use custom model
+```
+
+查看可用的解决方案及其选项：
+
+```sh
+yolo solutions help
+```
+
 # [训练](https://docs.ultralytics.com/zh/modes/train/)
 
 ## 使用示例
