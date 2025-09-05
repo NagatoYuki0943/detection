@@ -1,10 +1,22 @@
+# 安装
 
-
-# 本地安装
+## pip 安装
 
 ```sh
+# Install the ultralytics package from PyPI
+pip install ultralytics
+```
+
+## git clone
+
+```sh
+# Clone the ultralytics repository
 git clone https://github.com/ultralytics/ultralytics
+
+# Navigate to the cloned directory
 cd ultralytics
+
+# Install the package in editable mode for development
 pip install -v -e .
 # "-v" 指详细说明，或更多的输出
 # "-e" 表示在可编辑模式下安装项目，因此对代码所做的任何本地修改都会生效，从而无需重新安装。
