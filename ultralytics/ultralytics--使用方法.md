@@ -137,20 +137,20 @@ Ultralytics Solutions 配置设置提供了灵活性，可以自定义模型以�
 
 # 数据集
 
-> 先要把数据集放入dataset中，修改data/目录下的yaml，调整为自己的数据集，需要调整路径，分类数，标签名
+先要把数据集放入dataset中，修改data/目录下的yaml，调整为自己的数据集，需要调整路径，分类数，标签名
 
-> yolo数据集格式(yolov5/v8的coco8和霹雳吧啦Wz的yolo3为例)
->
-> txt内容，每一行都是 `3 0.933536 0.486124 0.030408 0.154487`
->
-> 是 label 中心横坐标与图像宽度比值 中心纵坐标与图像高度比值 bbox宽度与图像宽度比值 bbox高度与图像宽高比值
+yolo数据集格式(yolov5/v8的coco8和霹雳吧啦Wz的yolo3为例)
+
+txt内容，每一行都是 `3 0.933536 0.486124 0.030408 0.154487`，`class center_x center_y width height`
+
+label 中心横坐标与图像宽度比值 中心纵坐标与图像高度比值 bbox宽度与图像宽度比值 bbox高度与图像宽高比值
 
 ```sh
 #-------------------------------------------#
-# 	yolov5 v8的格式
+#     yolov5 v8的格式
 #-------------------------------------------#
 yaml:
-    path: ../datasets/coco8   # dataset root dir
+    path: coco8                 # dataset root dir
     train: images/train         # train images (relative to 'path') 128 images
     val: images/val             # val images (relative to 'path') 128 images
     test: images/test           # test images (optional)
@@ -168,13 +168,14 @@ dir:
             └── test    # 测试标签txt
 
 #-------------------------------------------#
-# 	yolov5 v8另的一种图片目录格式
+#     yolov5 v8另的一种图片目录格式
 #-------------------------------------------#
 yaml:
-    path: ../datasets/coco8   # dataset root dir
+    path: coco8                 # dataset root dir
     train: train/images         # train images (relative to 'path')
     val: val/images             # val images (relative to 'path')
     test: test/images           # test images (optional)
+
 dir:
     datasets
     ├── coco8
@@ -189,30 +190,42 @@ dir:
             └── labels  # 测试标签txt
 ```
 
-> `ultralytics/datasets/class20.yaml`
+`ultralytics/cfg/datasets/VOC.yaml`
 
 ```yaml
-# YOLOv5 🚀 by Ultralytics, GPL-3.0 license
-# coco8 dataset https://www.kaggle.com/ultralytics/coco8 (first 128 images from COCO train2017) by Ultralytics
-# Example usage: python train.py --data coco8.yaml
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
+# PASCAL VOC dataset http://host.robots.ox.ac.uk/pascal/VOC by University of Oxford
+# Documentation: # Documentation: https://docs.ultralytics.com/datasets/detect/voc/
+# Example usage: yolo train data=VOC.yaml
 # parent
 # ├── ultralytics
-# |   └── ultralytics
 # └── datasets
-#     └── yourname
+#     └── VOC ← downloads here (2.8 GB)
 #         └── images/
-#             └── train2017/  存放训练图片
-#             └── val2017/    存放验证图片
+#             └── train2012/  存放训练图片
+#             └── train2007/  存放训练图片
+#             └── val2012/    存放训练图片
+#             └── val2017/    存放训练图片
+#             └── test2007/   存放验证/测试图片
 #         └── labels/
-#             └── train2017/  存放训练标签  class x_center y_center width height
-#             └── val2017/    存放验证标签
-
+#             └── train2012/  存放训练标签  class center_x center_y width height
+#             └── train2007/  存放训练标签
+#             └── val2012/    存放训练标签
+#             └── val2017/    存放训练标签
+#             └── test2007/   存放验证/测试标签
 
 # Train/val/test sets as 1) dir: path/to/imgs, 2) file: path/to/imgs.txt, or 3) list: [path/to/imgs1, path/to/imgs2, ..]
-path: ../datasets/classes20  # dataset root dir
-train: images/train2017  # train images (relative to 'path') 128 images
-val: images/val2017  # val images (relative to 'path') 128 images
-test:  # test images (optional)
+path: VOC
+train: # train images (relative to 'path') 16551 images
+  - images/train2012
+  - images/train2007
+  - images/val2012
+  - images/val2007
+val: # val images (relative to 'path') 4952 images
+  - images/test2007
+test: # test images (optional)
+  - images/test2007
 
 # Classes
 names:
@@ -792,7 +805,7 @@ yolo11n summary: 225 layers, 3157200 parameters, 3157184 gradients, 8.9 GFLOPs
 Transferred 355/355 items from pretrained weights
 Ultralytics YOLOv8.0.58  Python-3.10.9 torch-2.0.0+cu118 CUDA:0 (NVIDIA GeForce GTX 1080 Ti, 11264MiB)
 yolo\engine\trainer: detect, train, model=ultralytics/models/v8/yolo11n.yaml, data=ultralytics/datasets/classes20.yaml, epochs=300, patience=50, batch=-1, imgsz=640, save=True, save_period=-1, cache=False, device=0, workers=8, project=None, name=None, exist_ok=False, pretrained=weights/yolo11n.pt, optimizer=SGD, verbose=True, seed=0, deterministic=True, single_cls=False, image_weights=False, rect=False, cos_lr=True, close_mosaic=10, resume=False, amp=True, overlap_mask=True, mask_ratio=4, dropout=0.0, val=True, split=val, save_json=False, save_hybrid=False, conf=None, iou=0.7, max_det=300, half=False, dnn=False, plots=True, source=None, show=False, save_txt=False, save_conf=False, save_crop=False, hide_labels=False, hide_conf=False, vid_stride=1, line_thickness=3, visualize=False, augment=False, agnostic_nms=False, classes=None, retina_masks=False, boxes=True, format=torchscript, keras=False, optimize=False, int8=False, dynamic=False, simplify=False, opset=None, workspace=4, nms=False, lr0=0.01, lrf=0.01, momentum=0.937, weight_decay=0.0005, warmup_epochs=3.0, warmup_momentum=0.8, warmup_bias_lr=0.1, box=7.5, cls=0.5, dfl=1.5, fl_gamma=0.0, label_smoothing=0.0, nbs=64, hsv_h=0.015, hsv_s=0.7, hsv_v=0.4, degrees=0.0, translate=0.1, scale=0.5, shear=0.0, perspective=0.0, flipud=0.0, fliplr=0.5, mosaic=1.0, mixup=0.0, copy_paste=0.0, cfg=None, v5loader=False, tracker=botsort.yaml, save_dir=d:\code\ultralytics\runs\detect\train2
-Overriding model.yaml nc=80 with nc=20		# 这里自动覆盖了旧的类别数
+Overriding model.yaml nc=80 with nc=20        # 这里自动覆盖了旧的类别数
 
                    from  n    params  module                                       arguments
   0                  -1  1       464  ultralytics.nn.modules.Conv                  [3, 16, 3, 2]
