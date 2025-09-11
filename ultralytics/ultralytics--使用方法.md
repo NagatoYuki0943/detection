@@ -715,14 +715,19 @@ YOLO 模型的训练设置包括训练过程中使用的各种超参数和配置
 py
 
 ```python
+from pathlib import Path
 from ultralytics import YOLO
 
 
-yaml_path = "ultralytics/cfg/models/11/yolo11n.yaml"
-model_path = "weights/yolo11n.pt"
-data_path = "datasets/coco/coco.yaml"
+yaml_path = Path("ultralytics/cfg/models/11/yolo11n.yaml").resolve()
+model_path = Path("weights/yolo11n.pt").resolve()
+data_path = Path("datasets/coco/coco.yaml").resolve()
 project = "myproject"
 name = "yolo11n/train"
+
+print(yaml_path, "is exists: ", yaml_path.exists())
+print(model_path, "is exists: ", model_path.exists())
+print(data_path, "is exists: ", data_path.exists())
 
 
 # Load a model
@@ -752,13 +757,13 @@ results = model.train(
     seed=0,
     deterministic=True,
     single_cls=False,
-    classes=None, # list[int] | None, 指定要训练的类 ID 列表。可用于在训练期间过滤掉并仅关注某些类。
+    classes=None,  # list[int] | None, 指定要训练的类 ID 列表。可用于在训练期间过滤掉并仅关注某些类。
     rect=False,
     multi_scale=False,
     cos_lr=True,
     close_mosaic=10,
     resume=False,
-    amp=True,
+    amp=True,  # 会在脚本执行目录下载一个小模型用来检查 amp 是否可用
     fraction=1.0,
     profile=False,
     freeze=None,
@@ -1023,14 +1028,18 @@ yolo detect val model=path/to/best.pt # val custom model
 py
 
 ```python
+from pathlib import Path
 from ultralytics import YOLO
 from ultralytics.utils.metrics import DetMetrics
 
 
-model_path = "weights/yolo11n.pt"
-data_path = "datasets/coco/coco.yaml"
+model_path = Path("weights/yolo11n.pt").resolve()
+data_path = Path("datasets/coco/coco.yaml").resolve()
 project = "myproject"
 name = "yolo11n/val"
+
+print(model_path, "is exists: ", model_path.exists())
+print(data_path, "is exists: ", data_path.exists())
 
 
 model = YOLO(model_path)
@@ -1046,7 +1055,7 @@ metrics: DetMetrics = model.val(
     half=True,
     device=0,
     plots=True,
-    classes=None, # list[int] | None, 指定要训练的类 ID 列表。可用于在评估期间过滤并仅关注某些类。
+    classes=None,  # list[int] | None, 指定要训练的类 ID 列表。可用于在评估期间过滤并仅关注某些类。
     rect=True,
     project=project,
     name=name,
@@ -1896,15 +1905,19 @@ cv2.destroyAllWindows()
 py
 
 ```python
+from pathlib import Path
 from ultralytics import YOLO
 from ultralytics.engine.results import Results
 
 
-model_path = "weights/yolo11n.pt"
-source = "datasets/coco/images/val2017/000000000139.jpg"
-source = "datasets/coco/images/val2017/"
+model_path = Path("weights/yolo11n.pt").resolve()
+source = Path("datasets/coco/images/val2017/000000000139.jpg").resolve()
+source = Path("datasets/coco/images/val2017/").resolve()
 project = "myproject"
 name = "yolo11n/predict"
+
+print(model_path, "is exists: ", model_path.exists())
+print(source, "is exists: ", source.exists())
 
 
 model = YOLO(model_path)
@@ -1921,7 +1934,7 @@ results = model(
     max_det=300,
     augment=False,
     agnostic_nms=False,
-    classes=None, # list[int] | None, 将预测结果筛选到一组类别 ID。只会返回属于指定类别的检测结果。这对于专注于多类别检测任务中的相关对象非常有用。
+    classes=None,  # list[int] | None, 将预测结果筛选到一组类别 ID。只会返回属于指定类别的检测结果。这对于专注于多类别检测任务中的相关对象非常有用。
     project=project,
     name=name,
     stream=True,
