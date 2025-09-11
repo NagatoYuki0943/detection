@@ -716,7 +716,14 @@ py
 
 ```python
 from pathlib import Path
-from ultralytics import YOLO
+from ultralytics import YOLO, settings
+
+
+settings.update(
+    {
+        "tensorboard": True,
+    }
+)
 
 
 yaml_path = Path("ultralytics/cfg/models/11/yolo11n.yaml").resolve()
