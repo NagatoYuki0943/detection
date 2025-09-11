@@ -1053,7 +1053,6 @@ metrics: DetMetrics = model.val(
     verbose=False,
     save_txt=False,
     save_conf=False,
-    save_crop=False,
     workers=8,
     augment=False,
     agnostic_nms=False,
@@ -1062,19 +1061,19 @@ metrics: DetMetrics = model.val(
     compile=False,
 )
 
-print(f"metrics:\n{metrics}\n")
+# print(f"metrics:\n{metrics}\n")
 
 # map50-95
-print(f"map50-95:\n{metrics.box.map}\n")
+print(f"map50-95: {metrics.box.map}\n")
 
 # map50
-print(f"map50:\n{metrics.box.map50}\n")
+print(f"map50: {metrics.box.map50}\n")
 
 # map75
-print(f"map75:\n{metrics.box.map75}\n")
+print(f"map75: {metrics.box.map75}\n")
 
 # a list contains map50-95 of each category
-print(f"maps:\n{metrics.box.maps}\n")
+print(f"maps: {metrics.box.maps}\n")
 
 # confusion_matrix
 print(f"confusion_matrix:\n{metrics.confusion_matrix.to_df()}\n")
