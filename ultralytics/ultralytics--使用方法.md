@@ -613,7 +613,7 @@ yolo train resume model=path/to/last.pt
 
 请记住，默认情况下，检查点会在每个 epoch 结束时保存，或者使用 `save_period` 参数按固定间隔保存，因此您必须至少完成 1 个 epoch 才能恢复训练运行。
 
-## 训练设置
+## 参数
 
 YOLO 模型的训练设置包括训练过程中使用的各种超参数和配置。这些设置会影响模型的性能、速度和[准确性](https://www.ultralytics.com/glossary/accuracy)。关键训练设置包括批量大小、学习率、动量和权重衰减。此外，优化器的选择、[损失函数](https://www.ultralytics.com/glossary/loss-function)和训练数据集组成会影响训练过程。仔细调整和试验这些设置对于优化性能至关重要。
 
@@ -711,6 +711,73 @@ YOLO 模型的训练设置包括训练过程中使用的各种超参数和配置
 | [`erasing`](https://docs.ultralytics.com/zh/guides/yolo-data-augmentation/#random-erasing-erasing) | `float` | `0.4`         | `0.0 - 0.9`   | *仅分类*。在训练过程中随机擦除图像的区域，以鼓励模型关注不那么明显的特征。 |
 
 ## example
+
+py
+
+```python
+from ultralytics import YOLO
+
+
+yaml_path = "ultralytics/cfg/models/11/yolo11n.yaml"
+model_path = "weights/yolo11n.pt"
+data_path = "datasets/coco/coco.yaml"
+project = "myproject"
+name = "yolo11n/train"
+
+
+# Load a model
+# model = YOLO(yaml_path)  # build a new model from YAML
+model = YOLO(model_path)  # load a pretrained model (recommended for training)
+# model = YOLO(yaml_path).load(model_path)  # build from YAML and transfer weights
+
+
+# Train the model
+results = model.train(
+    data=data_path,
+    epochs=100,
+    time=None,
+    patience=100,
+    batch=-1,
+    imgsz=640,
+    save=True,
+    save_period=-1,
+    cache=False,
+    device=0,
+    workers=8,
+    project=project,
+    name=name,
+    exist_ok=False,
+    pretrained=True,
+    optimizer="auto",
+    seed=0,
+    deterministic=True,
+    single_cls=False,
+    classes=None, # list[int] | None, 指定要训练的类 ID 列表。可用于在训练期间过滤掉并仅关注某些类。
+    rect=False,
+    multi_scale=False,
+    cos_lr=True,
+    close_mosaic=10,
+    resume=False,
+    amp=True,
+    fraction=1.0,
+    profile=False,
+    freeze=None,
+    # lr0=0.01,
+    # lrf=0.01,
+    # momentum=0.937,
+    # weight_decay=0.0005,
+    warmup_epochs=3,
+    warmup_momentum=0.8,
+    warmup_bias_lr=0.1,
+    val=True,
+    plots=False,
+    compile=False,
+)
+
+print(results)
+```
+
+cmd
 
 ```sh
 # Build a new model from YAML and start training from scratch
@@ -952,6 +1019,68 @@ yolo detect val model=path/to/best.pt # val custom model
 ## Example
 
 ### torch
+
+py
+
+```python
+from ultralytics import YOLO
+from ultralytics.utils.metrics import DetMetrics
+
+
+model_path = "weights/yolo11n.pt"
+data_path = "datasets/coco/coco.yaml"
+project = "myproject"
+name = "yolo11n/val"
+
+
+model = YOLO(model_path)
+
+metrics: DetMetrics = model.val(
+    data=data_path,
+    imgsz=640,
+    batch=16,
+    save_json=False,
+    conf=0.001,
+    iou=0.7,
+    max_det=300,
+    half=True,
+    device=0,
+    plots=True,
+    classes=None, # list[int] | None, 指定要训练的类 ID 列表。可用于在评估期间过滤并仅关注某些类。
+    rect=True,
+    project=project,
+    name=name,
+    verbose=False,
+    save_txt=False,
+    save_conf=False,
+    save_crop=False,
+    workers=8,
+    augment=False,
+    agnostic_nms=False,
+    single_cls=False,
+    visualize=False,
+    compile=False,
+)
+
+print(f"metrics:\n{metrics}\n")
+
+# map50-95
+print(f"map50-95:\n{metrics.box.map}\n")
+
+# map50
+print(f"map50:\n{metrics.box.map50}\n")
+
+# map75
+print(f"map75:\n{metrics.box.map75}\n")
+
+# a list contains map50-95 of each category
+print(f"maps:\n{metrics.box.maps}\n")
+
+# confusion_matrix
+print(f"confusion_matrix:\n{metrics.confusion_matrix.to_df()}\n")
+```
+
+cmd
 
 ```sh
 yolo detect val imgsz=640 save_json=True save_txt=True save_conf=True conf=0.25 iou=0.7 data=ultralytics/cfg/datasets/coco8.yaml model=weights/yolo11n.pt device=0 project=myproject name=yolo11n/val
@@ -1764,6 +1893,64 @@ cv2.destroyAllWindows()
 ## Example
 
 ### torch
+
+py
+
+```python
+from ultralytics import YOLO
+from ultralytics.engine.results import Results
+
+
+model_path = "weights/yolo11n.pt"
+source = "datasets/coco/images/val2017/000000000139.jpg"
+source = "datasets/coco/images/val2017/"
+project = "myproject"
+name = "yolo11n/predict"
+
+
+model = YOLO(model_path)
+
+results = model(
+    source,
+    conf=0.25,
+    iou=0.7,
+    imgsz=640,
+    rect=True,
+    half=True,
+    device=0,
+    batch=16,
+    max_det=300,
+    augment=False,
+    agnostic_nms=False,
+    classes=None, # list[int] | None, 将预测结果筛选到一组类别 ID。只会返回属于指定类别的检测结果。这对于专注于多类别检测任务中的相关对象非常有用。
+    project=project,
+    name=name,
+    stream=True,
+    verbose=True,
+    compile=False,
+    show=False,
+    save=True,
+    save_txt=False,
+    save_conf=False,
+    save_crop=False,
+    show_labels=True,
+    show_conf=True,
+    show_boxes=True,
+    line_width=None,
+)
+
+result: Results
+for result in results:
+    boxes = result.boxes  # Boxes object for bounding box outputs
+    masks = result.masks  # Masks object for segmentation masks outputs
+    keypoints = result.keypoints  # Keypoints object for pose outputs
+    probs = result.probs  # Probs object for classification outputs
+    obb = result.obb  # Oriented boxes object for OBB outputs
+    # result.show()  # display to screen
+    # result.save(filename="result.jpg")  # save to disk
+```
+
+cmd
 
 ```sh
 yolo detect predict imgsz=640 save=True save_txt=True save_conf=True save_crop=True conf=0.25 iou=0.7 data=ultralytics/cfg/datasets/coco8.yaml model=weights/yolo11n.pt source=ultralytics/assets/bus.jpg device=0 project=myproject name=yolo11n/predict
