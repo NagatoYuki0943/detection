@@ -732,9 +732,9 @@ data_path = Path("datasets/coco/coco.yaml").resolve()
 project = "myproject"
 name = "yolo11n/train"
 
-print(yaml_path, "is exists: ", yaml_path.exists())
-print(model_path, "is exists: ", model_path.exists())
-print(data_path, "is exists: ", data_path.exists())
+print(f"{yaml_path} is exists: {yaml_path.exists()}")
+print(f"{model_path} is exists: {model_path.exists()}")
+print(f"{data_path} is exists: {data_path.exists()}")
 
 
 # Load a model
@@ -1045,8 +1045,8 @@ data_path = Path("datasets/coco/coco.yaml").resolve()
 project = "myproject"
 name = "yolo11n/val"
 
-print(model_path, "is exists: ", model_path.exists())
-print(data_path, "is exists: ", data_path.exists())
+print(f"{model_path} is exists: {model_path.exists()}")
+print(f"{data_path} is exists: {data_path.exists()}")
 
 
 model = YOLO(model_path)
@@ -1923,8 +1923,8 @@ source = Path("datasets/coco/images/val2017/").resolve()
 project = "myproject"
 name = "yolo11n/predict"
 
-print(model_path, "is exists: ", model_path.exists())
-print(source, "is exists: ", source.exists())
+print(f"{model_path} is exists: {model_path.exists()}")
+print(f"{source} is exists: {source.exists()}")
 
 
 model = YOLO(model_path)
