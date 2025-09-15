@@ -1,10 +1,22 @@
+# 安装
 
-
-# 本地安装
+## pip 安装
 
 ```sh
+# Install the ultralytics package from PyPI
+pip install ultralytics
+```
+
+## git clone
+
+```sh
+# Clone the ultralytics repository
 git clone https://github.com/ultralytics/ultralytics
+
+# Navigate to the cloned directory
 cd ultralytics
+
+# Install the package in editable mode for development
 pip install -v -e .
 # "-v" 指详细说明，或更多的输出
 # "-e" 表示在可编辑模式下安装项目，因此对代码所做的任何本地修改都会生效，从而无需重新安装。
@@ -125,20 +137,20 @@ Ultralytics Solutions 配置设置提供了灵活性，可以自定义模型以�
 
 # 数据集
 
-> 先要把数据集放入dataset中，修改data/目录下的yaml，调整为自己的数据集，需要调整路径，分类数，标签名
+先要把数据集放入dataset中，修改data/目录下的yaml，调整为自己的数据集，需要调整路径，分类数，标签名
 
-> yolo数据集格式(yolov5/v8的coco8和霹雳吧啦Wz的yolo3为例)
->
-> txt内容，每一行都是 `3 0.933536 0.486124 0.030408 0.154487`
->
-> 是 label 中心横坐标与图像宽度比值 中心纵坐标与图像高度比值 bbox宽度与图像宽度比值 bbox高度与图像宽高比值
+yolo数据集格式(yolov5/11的coco8和霹雳吧啦Wz的yolo3为例)
+
+txt内容，每一行都是 `3 0.933536 0.486124 0.030408 0.154487`，`class center_x center_y width height`
+
+label 中心横坐标与图像宽度比值 中心纵坐标与图像高度比值 bbox宽度与图像宽度比值 bbox高度与图像宽高比值
 
 ```sh
 #-------------------------------------------#
-# 	yolov5 v8的格式
+#     yolov5 11的格式
 #-------------------------------------------#
 yaml:
-    path: ../datasets/coco8   # dataset root dir
+    path: coco8                 # dataset root dir
     train: images/train         # train images (relative to 'path') 128 images
     val: images/val             # val images (relative to 'path') 128 images
     test: images/test           # test images (optional)
@@ -156,13 +168,14 @@ dir:
             └── test    # 测试标签txt
 
 #-------------------------------------------#
-# 	yolov5 v8另的一种图片目录格式
+#     yolov5 11另的一种图片目录格式
 #-------------------------------------------#
 yaml:
-    path: ../datasets/coco8   # dataset root dir
+    path: coco8                 # dataset root dir
     train: train/images         # train images (relative to 'path')
     val: val/images             # val images (relative to 'path')
     test: test/images           # test images (optional)
+
 dir:
     datasets
     ├── coco8
@@ -177,30 +190,42 @@ dir:
             └── labels  # 测试标签txt
 ```
 
-> `ultralytics/datasets/class20.yaml`
+`ultralytics/cfg/datasets/VOC.yaml`
 
 ```yaml
-# YOLOv5 🚀 by Ultralytics, GPL-3.0 license
-# coco8 dataset https://www.kaggle.com/ultralytics/coco8 (first 128 images from COCO train2017) by Ultralytics
-# Example usage: python train.py --data coco8.yaml
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
+# PASCAL VOC dataset http://host.robots.ox.ac.uk/pascal/VOC by University of Oxford
+# Documentation: # Documentation: https://docs.ultralytics.com/datasets/detect/voc/
+# Example usage: yolo train data=VOC.yaml
 # parent
 # ├── ultralytics
-# |   └── ultralytics
 # └── datasets
-#     └── yourname
+#     └── VOC ← downloads here (2.8 GB)
 #         └── images/
-#             └── train2017/  存放训练图片
-#             └── val2017/    存放验证图片
+#             └── train2012/  存放训练图片
+#             └── train2007/  存放训练图片
+#             └── val2012/    存放训练图片
+#             └── val2017/    存放训练图片
+#             └── test2007/   存放验证/测试图片
 #         └── labels/
-#             └── train2017/  存放训练标签  class x_center y_center width height
-#             └── val2017/    存放验证标签
-
+#             └── train2012/  存放训练标签  class center_x center_y width height
+#             └── train2007/  存放训练标签
+#             └── val2012/    存放训练标签
+#             └── val2017/    存放训练标签
+#             └── test2007/   存放验证/测试标签
 
 # Train/val/test sets as 1) dir: path/to/imgs, 2) file: path/to/imgs.txt, or 3) list: [path/to/imgs1, path/to/imgs2, ..]
-path: ../datasets/classes20  # dataset root dir
-train: images/train2017  # train images (relative to 'path') 128 images
-val: images/val2017  # val images (relative to 'path') 128 images
-test:  # test images (optional)
+path: VOC
+train: # train images (relative to 'path') 16551 images
+  - images/train2012
+  - images/train2007
+  - images/val2012
+  - images/val2007
+val: # val images (relative to 'path') 4952 images
+  - images/test2007
+test: # test images (optional)
+  - images/test2007
 
 # Classes
 names:
@@ -232,7 +257,7 @@ names:
 
 ## 模型
 
-所有的 YOLOv8 预训练模型都可以在此找到。检测、分割和姿态模型在 [COCO](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/datasets/coco.yaml) 数据集上进行预训练，而分类模型在 [ImageNet](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/datasets/ImageNet.yaml) 数据集上进行预训练。
+所有的 YOLO11 预训练模型都可以在此找到。检测、分割和姿态模型在 [COCO](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/datasets/coco.yaml) 数据集上进行预训练，而分类模型在 [ImageNet](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/datasets/ImageNet.yaml) 数据集上进行预训练。
 
 在首次使用时，[模型](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/models) 会自动从最新的 Ultralytics [发布版本](https://github.com/ultralytics/assets/releases)中下载。
 
@@ -240,14 +265,172 @@ names:
 | ------------------------------------------------------------ | ------------- | ------------ | ---------------------- | --------------------------- | ---------- | --------- |
 | [yolo11n](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolo11n.pt) | 640           | 37.3         | 80.4                   | 0.99                        | 3.2        | 8.7       |
 | [yolo11n](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolo11n.pt) | 640           | 44.9         | 128.4                  | 1.20                        | 11.2       | 28.6      |
-| [YOLOv8m](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8m.pt) | 640           | 50.2         | 234.7                  | 1.83                        | 25.9       | 78.9      |
-| [YOLOv8l](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8l.pt) | 640           | 52.9         | 375.2                  | 2.39                        | 43.7       | 165.2     |
-| [YOLOv8x](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8x.pt) | 640           | 53.9         | 479.1                  | 3.53                        | 68.2       | 257.8     |
+| [YOLO11m](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolo11m.pt) | 640           | 50.2         | 234.7                  | 1.83                        | 25.9       | 78.9      |
+| [YOLO11l](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolo11l.pt) | 640           | 52.9         | 375.2                  | 2.39                        | 43.7       | 165.2     |
+| [YOLO11x](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolo11x.pt) | 640           | 53.9         | 479.1                  | 3.53                        | 68.2       | 257.8     |
 
 - **mAPval** 结果都在 [COCO val2017](http://cocodataset.org/) 数据集上，使用单模型单尺度测试得到。
   复现命令 `yolo val detect data=coco.yaml device=0`
 - **推理速度**使用 COCO 验证集图片推理时间进行平均得到，测试环境使用 [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) 实例。
   复现命令 `yolo val detect data=coco8.yaml batch=1 device=0|cpu`
+
+# [命令行界面](https://docs.ultralytics.com/zh/usage/cli/)
+
+## 语法
+
+```sh
+yolo TASK MODE ARGS
+```
+
+其中：
+
+- `TASK` （可选）是以下之一 `[detect, segment, classify, pose, obb]`。如果未明确传递，YOLO 将尝试推断 `TASK` 。
+- `MODE` （必需）是以下之一 `[train, val, predict, export, track, benchmark]`
+- `ARGS` （可选）是任意数量的自定义 `arg=value` 键值对，例如 `imgsz=320` ，用于覆盖默认值。 有关可用 `ARGS`，请参阅 [配置](https://docs.ultralytics.com/zh/usage/cfg/) 页面和 `defaults.yaml`.
+
+在完整版中查看所有 ARGS [配置指南](https://docs.ultralytics.com/zh/usage/cfg/) 或使用 `yolo cfg`.
+
+> 参数必须以 `arg=val` 对，用等号分隔 `=` 签名，并用空格分隔对。不要使用 `--` 参数前缀或逗号 `,` 在参数之间。
+>
+> - `yolo predict model=yolo11n.pt imgsz=640 conf=0.25`  ✅
+> - `yolo predict model yolo11n.pt imgsz 640 conf 0.25`  ❌
+> - `yolo predict --model yolo11n.pt --imgsz 640 --conf 0.25`  ❌
+
+## 训练
+
+在 COCO8 数据集上训练 YOLO，图像大小为 640，训练 100 个 epoch。有关可用参数的完整列表，请参见[配置](https://docs.ultralytics.com/zh/usage/cfg/)页面。
+
+```sh
+yolo detect train data=coco8.yaml model=yolo11n.pt epochs=100 imgsz=640
+```
+
+恢复中断的训练会话：
+
+```sh
+yolo detect train resume model=last.pt
+```
+
+## 验证
+
+验证 [准确性](https://www.ultralytics.com/glossary/accuracy) 在 COCO8 数据集上训练模型的。由于 `model` 保留其训练 `data` 和参数作为模型属性，因此无需任何参数。
+
+```sh
+yolo detect val model=yolo11n.pt
+```
+
+验证自定义训练的模型：
+
+```sh
+yolo detect val model=path/to/best.pt
+```
+
+## 预测
+
+使用训练好的模型来运行图像预测。
+
+使用官方YOLO11n模型进行预测：
+
+```sh
+yolo detect predict model=yolo11n.pt source='https://ultralytics.com/images/bus.jpg'
+```
+
+使用自定义模型进行预测：
+
+```sh
+yolo detect predict model=path/to/best.pt source='https://ultralytics.com/images/bus.jpg'
+```
+
+## 导出
+
+将官方 YOLO11n 模型导出为 ONNX 格式：
+
+```sh
+yolo export model=yolo11n.pt format=onnx
+```
+
+将自定义训练的模型导出为 ONNX 格式：
+
+```
+yolo export model=path/to/best.pt format=onnx
+```
+
+## 覆盖默认参数
+
+通过在 CLI 中传递参数来覆盖默认参数，例如 `arg=value` 键值对的形式传递参数来覆盖默认参数。
+
+训练一个检测模型 10 个 epochs，学习率为 0.01：
+
+```sh
+yolo detect train data=coco8.yaml model=yolo11n.pt epochs=10 lr0=0.01
+```
+
+使用预训练的分割模型在YouTube视频上以320的图像尺寸进行预测：
+
+```sh
+yolo segment predict model=yolo11n-seg.pt source='https://youtu.be/LNwODJXcvt4' imgsz=320
+```
+
+使用 1 的批量大小和 640 的图像大小验证预训练的检测模型：
+
+```sh
+yolo detect val model=yolo11n.pt data=coco8.yaml batch=1 imgsz=640
+```
+
+## 覆盖默认配置文件
+
+覆盖 `default.yaml` 通过传递一个新文件来完全替换配置文件。 `cfg` 参数，例如 `cfg=custom.yaml`.
+
+为此，首先创建一份副本 `default.yaml` 在您当前的工作目录中使用 `yolo copy-cfg` 命令，它会创建一个 `default_copy.yaml` 文件。
+
+然后，您可以将此文件作为以下内容传递： `cfg=default_copy.yaml` 以及任何其他参数，例如 `imgsz=320` 在此示例中：
+
+```sh
+yolo copy-cfg
+yolo cfg=default_copy.yaml imgsz=320
+```
+
+## 解决方案命令
+
+Ultralytics 通过 CLI 为常见的计算机视觉应用提供即用型解决方案。这些解决方案简化了对象计数、锻炼监控和队列管理等复杂任务的实施。
+
+统计视频或直播流中的物体数量：
+
+```sh
+yolo solutions count show=True
+yolo solutions count source="path/to/video.mp4" # specify video file path
+```
+
+使用姿势模型监控锻炼练习：
+
+```sh
+yolo solutions workout show=True
+yolo solutions workout source="path/to/video.mp4" # specify video file path
+
+# Use keypoints for ab-workouts
+yolo solutions workout kpts=[5, 11, 13] # left side
+yolo solutions workout kpts=[6, 12, 14] # right side
+```
+
+统计指定队列或区域中的物体数量：
+
+```sh
+yolo solutions queue show=True
+yolo solutions queue source="path/to/video.mp4"                                # specify video file path
+yolo solutions queue region="[(20, 400), (1080, 400), (1080, 360), (20, 360)]" # configure queue coordinates
+```
+
+使用 Streamlit 在 Web 浏览器中执行对象检测、实例分割或姿势估计：
+
+```sh
+yolo solutions inference
+yolo solutions inference model="path/to/model.pt" # use custom model
+```
+
+查看可用的解决方案及其选项：
+
+```sh
+yolo solutions help
+```
 
 # [训练](https://docs.ultralytics.com/zh/modes/train/)
 
@@ -430,7 +613,7 @@ yolo train resume model=path/to/last.pt
 
 请记住，默认情况下，检查点会在每个 epoch 结束时保存，或者使用 `save_period` 参数按固定间隔保存，因此您必须至少完成 1 个 epoch 才能恢复训练运行。
 
-## 训练设置
+## 参数
 
 YOLO 模型的训练设置包括训练过程中使用的各种超参数和配置。这些设置会影响模型的性能、速度和[准确性](https://www.ultralytics.com/glossary/accuracy)。关键训练设置包括批量大小、学习率、动量和权重衰减。此外，优化器的选择、[损失函数](https://www.ultralytics.com/glossary/loss-function)和训练数据集组成会影响训练过程。仔细调整和试验这些设置对于优化性能至关重要。
 
@@ -442,7 +625,7 @@ YOLO 模型的训练设置包括训练过程中使用的各种超参数和配置
 | `time`            | `float`                  | `None`   | 最长训练时间（以小时为单位）。如果设置此参数，它将覆盖 `epochs` 参数，允许训练在指定时长后自动停止。适用于时间受限的训练场景。 |
 | `patience`        | `int`                    | `100`    | 在验证指标没有改善的情况下，等待多少个epoch后提前停止训练。通过在性能停滞时停止训练，有助于防止[过拟合](https://www.ultralytics.com/glossary/overfitting)。 |
 | `batch`           | `int` 或 `float`         | `16`     | [批次大小](https://www.ultralytics.com/glossary/batch-size)，具有三种模式：设置为整数（例如， `batch=16`），自动模式，GPU 内存利用率为 60%（`batch=-1`），或具有指定利用率分数的自动模式（`batch=0.70`）。 |
-| `imgsz`           | `int` 或 `list`          | `640`    | 训练的目标图像大小。所有图像在输入模型之前都会调整为此尺寸。影响模型的[准确性](https://www.ultralytics.com/glossary/accuracy)和计算复杂度。 |
+| `imgsz`           | `int`                    | `640`    | 用于训练的目标图像大小。图像被调整为边长等于指定值的正方形（如果 `rect=False`），为 YOLO 模型保留宽高比，但不为 RTDETR 保留。影响模型 [准确性](https://www.ultralytics.com/glossary/accuracy) 和计算复杂度。 |
 | `save`            | `bool`                   | `True`   | 启用保存训练检查点和最终模型权重。可用于恢复训练或[模型部署](https://www.ultralytics.com/glossary/model-deployment)。 |
 | `save_period`     | `int`                    | `-1`     | 保存模型检查点的频率，以 epoch 为单位指定。值为 -1 时禁用此功能。适用于在长时间训练期间保存临时模型。 |
 | `cache`           | `bool`                   | `False`  | 启用在内存中缓存数据集图像（`True`/`ram`），在磁盘上缓存（`disk`），或禁用缓存（`False`）。通过减少磁盘 I/O 来提高训练速度，但会增加内存使用量。 |
@@ -457,7 +640,7 @@ YOLO 模型的训练设置包括训练过程中使用的各种超参数和配置
 | `deterministic`   | `bool`                   | `True`   | 强制使用确定性算法，确保可重复性，但由于限制了非确定性算法，可能会影响性能和速度。 |
 | `single_cls`      | `bool`                   | `False`  | 在多类别数据集中，将所有类别视为单个类别进行训练。适用于二元分类任务或侧重于对象是否存在而非分类时。 |
 | `classes`         | `list[int]`              | `None`   | 指定要训练的类 ID 列表。可用于在训练期间过滤掉并仅关注某些类。 |
-| `rect`            | `bool`                   | `False`  | 启用矩形训练，优化批次组合以实现最小填充。可以提高效率和速度，但可能会影响模型准确性。 |
+| `rect`            | `bool`                   | `False`  | 启用最小填充策略——批量中的图像被最小程度地填充以达到一个共同的大小，最长边等于 `imgsz`。可以提高效率和速度，但可能会影响模型精度。 |
 | `multi_scale`     | `bool`                   | `False`  | 通过增加/减少来启用多尺度训练 `imgsz` 高达 `0.5` 在训练期间。训练模型，使其在多次迭代中更加准确 `imgsz` 在推理过程中。 |
 | `cos_lr`          | `bool`                   | `False`  | 使用余弦[学习率](https://www.ultralytics.com/glossary/learning-rate)调度器，在 epochs 上按照余弦曲线调整学习率。有助于管理学习率，从而实现更好的收敛。 |
 | `close_mosaic`    | `int`                    | `10`     | 在最后 N 个 epochs 中禁用 mosaic [数据增强](https://www.ultralytics.com/glossary/data-augmentation)，以在完成前稳定训练。设置为 0 可禁用此功能。 |
@@ -476,14 +659,15 @@ YOLO 模型的训练设置包括训练过程中使用的各种超参数和配置
 | `box`             | `float`                  | `7.5`    | [损失函数](https://www.ultralytics.com/glossary/loss-function)中框损失分量的权重，影响对准确预测[边界框](https://www.ultralytics.com/glossary/bounding-box)坐标的重视程度。 |
 | `cls`             | `float`                  | `0.5`    | 分类损失在总损失函数中的权重，影响正确类别预测相对于其他成分的重要性。 |
 | `dfl`             | `float`                  | `1.5`    | 分布焦点损失的权重，在某些 YOLO 版本中用于细粒度分类。       |
-| `pose`            | `float`                  | `12.0`   | 为姿势估计 训练的模型中姿势估计 损失的权重，影响对准确预测姿势估计 关键点的重视程度。 |
-| `kobj`            | `float`                  | `2.0`    | 关键点对象性损失在姿势估计 模型中的权重，兼顾检测可信度和姿势估计 精度。 |
+| `pose`            | `float`                  | `12.0`   | 在为姿势估计训练的模型中，姿势损失的权重会影响对准确预测姿势关键点的强调。 |
+| `kobj`            | `float`                  | `2.0`    | 姿势估计模型中关键点对象性损失的权重，用于平衡检测置信度和姿势准确性。 |
 | `nbs`             | `int`                    | `64`     | 用于损失归一化的标称批量大小。                               |
 | `overlap_mask`    | `bool`                   | `True`   | 确定是否应将对象掩码合并为单个掩码以进行训练，还是为每个对象保持分离。如果发生重叠，则在合并期间，较小的掩码会覆盖在较大的掩码之上。 |
 | `mask_ratio`      | `int`                    | `4`      | 分割掩码的下采样率，影响训练期间使用的掩码分辨率。           |
 | `dropout`         | `float`                  | `0.0`    | 分类任务中用于正则化的 Dropout 率，通过在训练期间随机省略单元来防止过拟合。 |
 | `val`             | `bool`                   | `True`   | 在训练期间启用验证，从而可以定期评估模型在单独数据集上的性能。 |
 | `plots`           | `bool`                   | `False`  | 生成并保存训练和验证指标的图表，以及预测示例，从而提供对模型性能和学习进度的可视化见解。 |
+| `compile`         | `bool` 或 `str`          | `False`  | 启用PyTorch 2.x `torch.compile` 用 `backend='inductor'`.接受 `True` → `"default"`, `False` → 禁用，或字符串模式，如 `"default"`, `"reduce-overhead"`, `"max-autotune"`.如果不支持，则退回到渴望状态，并发出警告。 |
 
 > 关于批量大小设置的说明
 >
@@ -528,62 +712,123 @@ YOLO 模型的训练设置包括训练过程中使用的各种超参数和配置
 
 ## example
 
+py
+
+```python
+from pathlib import Path
+from ultralytics import YOLO, settings
+
+
+settings.update(
+    {
+        "tensorboard": True,
+    }
+)
+
+
+yaml_path = Path("ultralytics/cfg/models/11/yolo11n.yaml").resolve()
+model_path = Path("weights/yolo11n.pt").resolve()
+data_path = Path("datasets/coco/coco.yaml").resolve()
+project = "myproject"
+name = "yolo11n/train"
+
+print(f"{yaml_path} is exists: {yaml_path.exists()}")
+print(f"{model_path} is exists: {model_path.exists()}")
+print(f"{data_path} is exists: {data_path.exists()}")
+
+
+# Load a model
+# model = YOLO(yaml_path)  # build a new model from YAML
+model = YOLO(model_path)  # load a pretrained model (recommended for training)
+# model = YOLO(yaml_path).load(model_path)  # build from YAML and transfer weights
+
+
+# Train the model
+results = model.train(
+    data=data_path,
+    epochs=100,
+    time=None,
+    patience=100,
+    batch=-1,
+    imgsz=640,
+    save=True,
+    save_period=-1,
+    cache=False,
+    device=0,
+    workers=8,
+    project=project,
+    name=name,
+    exist_ok=False,
+    pretrained=True,
+    optimizer="auto",
+    seed=0,
+    deterministic=True,
+    single_cls=False,
+    classes=None,  # list[int] | None, 指定要训练的类 ID 列表。可用于在训练期间过滤掉并仅关注某些类。
+    rect=False,
+    multi_scale=False,
+    cos_lr=True,
+    close_mosaic=10,
+    resume=False,
+    amp=True,  # 会在脚本执行目录下载一个小模型用来检查 amp 是否可用
+    fraction=1.0,
+    profile=False,
+    freeze=None,
+    # lr0=0.01,
+    # lrf=0.01,
+    # momentum=0.937,
+    # weight_decay=0.0005,
+    warmup_epochs=3,
+    warmup_momentum=0.8,
+    warmup_bias_lr=0.1,
+    val=True,
+    plots=False,
+    compile=False,
+)
+
+print(results)
+```
+
+cmd
+
 ```sh
 # Build a new model from YAML and start training from scratch
-yolo detect train data=coco8.yaml model=yolo11n.yaml epochs=100 imgsz=640
+yolo detect train data=coco8.yaml model=yolo11n.yaml epochs=100 imgsz=640 project=myproject name=yolo11n/train
 
 # Start training from a pretrained *.pt model
-yolo detect train data=coco8.yaml model=yolo11n.pt epochs=100 imgsz=640
+yolo detect train data=coco8.yaml model=yolo11n.pt epochs=100 imgsz=640 project=myproject name=yolo11n/train
 
 # Build a new model from YAML, transfer pretrained weights to it and start training
-yolo detect train data=coco8.yaml model=yolo11n.yaml pretrained=yolo11n.pt epochs=100 imgsz=640
+yolo detect train data=coco8.yaml model=yolo11n.yaml pretrained=yolo11n.pt epochs=100 imgsz=640 project=myproject name=yolo11n/train
 ```
 
 > `Multi-GPU Training`
 
 ```sh
 # Start training from a pretrained *.pt model using GPUs 0 and 1
-yolo detect train data=coco8.yaml model=yolo11n.pt epochs=100 imgsz=640 device=0,1
+yolo detect train data=coco8.yaml model=yolo11n.pt epochs=100 imgsz=640 device=0,1 project=myproject name=yolo11n/train
 ```
 
 > `auto optimizer`
 
 ```sh
-yolo detect train imgsz=640 batch=-1 workers=8 epochs=300 patience=0 close_mosaic=10 fraction=1.0 cos_lr=True device=0 model=ultralytics/cfg/models/v8/yolo11n.yaml pretrained=weights/yolo11n.pt data=ultralytics/datasets/coco8.yaml
+yolo detect train imgsz=640 batch=-1 workers=8 epochs=300 patience=0 close_mosaic=10 fraction=1.0 cos_lr=True device=0 model=ultralytics/cfg/models/11/yolo11n.yaml pretrained=weights/yolo11n.pt data=ultralytics/datasets/coco8.yaml project=myproject name=yolo11n/train
 
 #                                                                                                                                model可以直接设置为pt
-yolo detect train imgsz=640 batch=-1 workers=8 epochs=300 patience=0 close_mosaic=10 fraction=1.0 cos_lr=True device=0 model=weights/yolo11n.pt data=ultralytics/cfg/datasets/coco8.yaml
+yolo detect train imgsz=640 batch=-1 workers=8 epochs=300 patience=0 close_mosaic=10 fraction=1.0 cos_lr=True device=0 model=weights/yolo11n.pt data=ultralytics/cfg/datasets/coco8.yaml project=myproject name=yolo11n/train
 
 #                                                        rtdetr 训练轮数更少
-yolo detect train imgsz=640 batch=-1 workers=8 epochs=100 patience=0 close_mosaic=10 fraction=1.0 cos_lr=True device=0 model=ultralytics/cfg/models/rt-detr/rtdetr-x.yaml pretrained=weights/rtdetr-x.pt data=ultralytics/cfg/datasets/coco8.yaml
+yolo detect train imgsz=640 batch=-1 workers=8 epochs=100 patience=0 close_mosaic=10 fraction=1.0 cos_lr=True device=0 model=ultralytics/cfg/models/rt-detr/rtdetr-x.yaml pretrained=weights/rtdetr-x.pt data=ultralytics/cfg/datasets/coco8.yaml project=myproject name=yolo11n/train
 
 #                                                        rtdetr 训练轮数更少                                                       model可以直接设置为pt
-yolo detect train imgsz=640 batch=-1 workers=8 epochs=100 patience=0 close_mosaic=10 fraction=1.0 cos_lr=True device=0 model=weights/rtdetr-x.pt data=ultralytics/cfg/datasets/coco8.yaml
-```
-
-> `SGD`
-
-```sh
-yolo detect train imgsz=640 batch=-1 workers=8 epochs=300 patience=0 close_mosaic=10 fraction=1.0 optimizer=SGD lr0=0.01 cos_lr=True device=0 model=ultralytics/cfg/models/v8/yolo11n.yaml pretrained=weights/yolo11n.pt data=ultralytics/cfg/datasets/coco8.yaml
-
-#                                                                                                                                                       model可以直接设置为pt
-yolo detect train imgsz=640 batch=-1 workers=8 epochs=300 patience=0 close_mosaic=10 fraction=1.0 optimizer=SGD lr0=0.01 cos_lr=True device=0 model=weights/yolo11n.pt data=ultralytics/cfg/datasets/coco8.yaml
-```
-
-> `Adam`
-
-```sh
-yolo detect train imgsz=640 batch=-1 workers=8 epochs=300 patience=0 close_mosaic=10 fraction=1.0 optimizer=AdamW lr0=0.001 cos_lr=True device=0 model=ultralytics/cfg/models/v8/yolo11n.yaml pretrained=weights/yolo11n.pt data=ultralytics/cfg/datasets/coco8.yaml
-
-#                                                                                                                                                          model可以直接设置为pt
-yolo detect train imgsz=640 batch=-1 workers=8 epochs=300 patience=0 close_mosaic=10 fraction=1.0 optimizer=AdamW lr0=0.001 cos_lr=True device=0 model=weights/yolo11n.pt data=ultralytics/cfg/datasets/coco8.yaml
+yolo detect train imgsz=640 batch=-1 workers=8 epochs=100 patience=0 close_mosaic=10 fraction=1.0 cos_lr=True device=0 model=weights/rtdetr-x.pt data=ultralytics/cfg/datasets/coco8.yaml project=myproject name=yolo11n/train
 ```
 
 > `resume`
 
 ```sh
 #                                                                                                                                model=最后的pt
-yolo detect train imgsz=640 batch=-1 workers=8 epochs=300 patience=0 close_mosaic=10 fraction=1.0 cos_lr=True device=0 model=weights/last.pt data=ultralytics/cfg/datasets/coco8.yaml resume=True exist_ok=True
+yolo detect train imgsz=640 batch=-1 workers=8 epochs=300 patience=0 close_mosaic=10 fraction=1.0 cos_lr=True device=0 model=weights/last.pt data=ultralytics/cfg/datasets/coco8.yaml resume=True exist_ok=True project=myproject name=yolo11n/train
 ```
 
 ## **不需要在模型配置中显示更改类别数**
@@ -591,7 +836,7 @@ yolo detect train imgsz=640 batch=-1 workers=8 epochs=300 patience=0 close_mosai
 > 会自动将nc调整为数据集的类别数量
 
 ```sh
-> yolo detect train imgsz=640 batch=-1 epochs=300 optimizer=SGD lr0=0.01 cos_lr=True device=0 pretrained=weights/yolo11n.pt model=ultralytics/models/v8/yolo11n.yaml data=ultralytics/datasets/classes20.yaml
+> yolo detect train imgsz=640 batch=-1 epochs=300 optimizer=SGD lr0=0.01 cos_lr=True device=0 pretrained=weights/yolo11n.pt model=ultralytics/models/11/yolo11n.yaml data=ultralytics/datasets/classes20.yaml
 
                    from  n    params  module                                       arguments
   0                  -1  1       464  ultralytics.nn.modules.Conv                  [3, 16, 3, 2]
@@ -620,9 +865,9 @@ yolo detect train imgsz=640 batch=-1 workers=8 epochs=300 patience=0 close_mosai
 yolo11n summary: 225 layers, 3157200 parameters, 3157184 gradients, 8.9 GFLOPs
 
 Transferred 355/355 items from pretrained weights
-Ultralytics YOLOv8.0.58  Python-3.10.9 torch-2.0.0+cu118 CUDA:0 (NVIDIA GeForce GTX 1080 Ti, 11264MiB)
-yolo\engine\trainer: detect, train, model=ultralytics/models/v8/yolo11n.yaml, data=ultralytics/datasets/classes20.yaml, epochs=300, patience=50, batch=-1, imgsz=640, save=True, save_period=-1, cache=False, device=0, workers=8, project=None, name=None, exist_ok=False, pretrained=weights/yolo11n.pt, optimizer=SGD, verbose=True, seed=0, deterministic=True, single_cls=False, image_weights=False, rect=False, cos_lr=True, close_mosaic=10, resume=False, amp=True, overlap_mask=True, mask_ratio=4, dropout=0.0, val=True, split=val, save_json=False, save_hybrid=False, conf=None, iou=0.7, max_det=300, half=False, dnn=False, plots=True, source=None, show=False, save_txt=False, save_conf=False, save_crop=False, hide_labels=False, hide_conf=False, vid_stride=1, line_thickness=3, visualize=False, augment=False, agnostic_nms=False, classes=None, retina_masks=False, boxes=True, format=torchscript, keras=False, optimize=False, int8=False, dynamic=False, simplify=False, opset=None, workspace=4, nms=False, lr0=0.01, lrf=0.01, momentum=0.937, weight_decay=0.0005, warmup_epochs=3.0, warmup_momentum=0.8, warmup_bias_lr=0.1, box=7.5, cls=0.5, dfl=1.5, fl_gamma=0.0, label_smoothing=0.0, nbs=64, hsv_h=0.015, hsv_s=0.7, hsv_v=0.4, degrees=0.0, translate=0.1, scale=0.5, shear=0.0, perspective=0.0, flipud=0.0, fliplr=0.5, mosaic=1.0, mixup=0.0, copy_paste=0.0, cfg=None, v5loader=False, tracker=botsort.yaml, save_dir=d:\code\ultralytics\runs\detect\train2
-Overriding model.yaml nc=80 with nc=20		# 这里自动覆盖了旧的类别数
+Ultralytics YOLO11.0.58  Python-3.10.9 torch-2.0.0+cu118 CUDA:0 (NVIDIA GeForce GTX 1080 Ti, 11264MiB)
+yolo\engine\trainer: detect, train, model=ultralytics/models/11/yolo11n.yaml, data=ultralytics/datasets/classes20.yaml, epochs=300, patience=50, batch=-1, imgsz=640, save=True, save_period=-1, cache=False, device=0, workers=8, project=None, name=None, exist_ok=False, pretrained=weights/yolo11n.pt, optimizer=SGD, verbose=True, seed=0, deterministic=True, single_cls=False, image_weights=False, rect=False, cos_lr=True, close_mosaic=10, resume=False, amp=True, overlap_mask=True, mask_ratio=4, dropout=0.0, val=True, split=val, save_json=False, save_hybrid=False, conf=None, iou=0.7, max_det=300, half=False, dnn=False, plots=True, source=None, show=False, save_txt=False, save_conf=False, save_crop=False, hide_labels=False, hide_conf=False, vid_stride=1, line_thickness=3, visualize=False, augment=False, agnostic_nms=False, classes=None, retina_masks=False, boxes=True, format=torchscript, keras=False, optimize=False, int8=False, dynamic=False, simplify=False, opset=None, workspace=4, nms=False, lr0=0.01, lrf=0.01, momentum=0.937, weight_decay=0.0005, warmup_epochs=3.0, warmup_momentum=0.8, warmup_bias_lr=0.1, box=7.5, cls=0.5, dfl=1.5, fl_gamma=0.0, label_smoothing=0.0, nbs=64, hsv_h=0.015, hsv_s=0.7, hsv_v=0.4, degrees=0.0, translate=0.1, scale=0.5, shear=0.0, perspective=0.0, flipud=0.0, fliplr=0.5, mosaic=1.0, mixup=0.0, copy_paste=0.0, cfg=None, v5loader=False, tracker=botsort.yaml, save_dir=d:\code\ultralytics\runs\detect\train2
+Overriding model.yaml nc=80 with nc=20        # 这里自动覆盖了旧的类别数
 
                    from  n    params  module                                       arguments
   0                  -1  1       464  ultralytics.nn.modules.Conv                  [3, 16, 3, 2]
@@ -737,32 +982,33 @@ yolo detect val model=path/to/best.pt # val custom model
 
 在验证 YOLO 模型时，可以微调多个参数以优化评估过程。这些参数控制着输入图像大小、批量处理和性能阈值等方面。以下是每个参数的详细分解，旨在帮助您有效地自定义验证设置。
 
-| 参数           | 类型        | 默认值  | 描述                                                         |
-| :------------- | :---------- | :------ | :----------------------------------------------------------- |
-| `data`         | `str`       | `None`  | 指定数据集配置文件（例如， `coco8.yaml`）的路径。 此文件包含指向 [验证数据的路径](https://www.ultralytics.com/glossary/validation-data)，类别名称和类别数量。 |
-| `imgsz`        | `int`       | `640`   | 定义输入图像的大小。所有图像在处理前都会调整为此尺寸。较大的尺寸可能会提高小目标的准确性，但会增加计算时间。 |
-| `batch`        | `int`       | `16`    | 设置每个批次的图像数量。较高的值能更有效地利用 GPU 内存，但需要更多的 VRAM。根据可用的硬件资源进行调整。 |
-| `save_json`    | `bool`      | `False` | 可视化参数： `True`，将结果保存到 JSON 文件中，以便进一步分析、与其他工具集成或提交到 COCO 等评估服务器。 |
-| `conf`         | `float`     | `0.001` | 设置检测的最小置信度阈值。较低的值会提高召回率，但也可能引入更多的假阳性。在[验证](https://docs.ultralytics.com/zh/modes/val/)期间用于计算精确率-召回率曲线。 |
-| `iou`          | `float`     | `0.7`   | 设置[交并比（Intersection Over Union）](https://www.ultralytics.com/glossary/intersection-over-union-iou)阈值，用于[非极大值抑制（Non-Maximum Suppression）](https://www.ultralytics.com/glossary/non-maximum-suppression-nms)。控制重复检测的消除。 |
-| `max_det`      | `int`       | `300`   | 限制每幏图像的最大检测数量。在密集场景中非常有用，可防止过度检测和管理计算资源。 |
-| `half`         | `bool`      | `True`  | 启用半[精度](https://www.ultralytics.com/glossary/precision) (FP16) 计算，从而减少内存使用量，并可能在对[准确性](https://www.ultralytics.com/glossary/accuracy)影响最小的情况下提高速度。 |
-| `device`       | `str`       | `None`  | 指定验证的设备（`cpu`, `cuda:0`，等等）。当 `None`，自动选择最佳可用设备。多个 CUDA 设备可以用逗号分隔指定。 |
-| `dnn`          | `bool`      | `False` | 可视化参数： `True`，使用 [OpenCV](https://www.ultralytics.com/glossary/opencv) DNN 模块进行 ONNX 模型推理，从而提供了一种替代 [PyTorch](https://www.ultralytics.com/glossary/pytorch) 推理方法。 |
-| `plots`        | `bool`      | `False` | 当设置为 `True`，生成并保存预测与真实值的对比图、混淆矩阵和 PR 曲线，以便对模型性能进行可视化评估。 |
-| `classes`      | `list[int]` | `None`  | 指定要训练的类 ID 列表。可用于在评估期间过滤并仅关注某些类。 |
-| `rect`         | `bool`      | `True`  | 可视化参数： `True`，使用矩形推理进行批处理，减少填充，并通过以原始宽高比处理图像来潜在地提高速度和效率。 |
-| `split`        | `str`       | `'val'` | 确定用于验证的数据集分割（`val`, `test`或 `train`）。 允许灵活选择数据段进行性能评估。 |
-| `project`      | `str`       | `None`  | 用于保存验证输出的项目目录的名称。有助于组织来自不同实验或模型的结果。 |
-| `name`         | `str`       | `None`  | 验证运行的名称。用于在项目文件夹中创建一个子目录，用于存储验证日志和输出。 |
-| `verbose`      | `bool`      | `False` | 可视化参数： `True`，在验证过程中显示详细信息，包括每个类别的指标、批次进度和其他调试信息。 |
-| `save_txt`     | `bool`      | `False` | 可视化参数： `True`，将检测结果保存在文本文件中，每个图像对应一个文件，可用于进一步分析、自定义后处理或与其他系统集成。 |
-| `save_conf`    | `bool`      | `False` | 可视化参数： `True`，在保存的文本文件中包含置信度值，当 `save_txt` 已启用，提供更详细的输出以供分析和过滤。 |
-| `workers`      | `int`       | `8`     | 用于数据加载的工作线程数。较高的值可以加快数据预处理速度，但可能会增加 CPU 使用率。设置为 0 使用主线程，这在某些环境中可能更稳定。 |
-| `augment`      | `bool`      | `False` | 启用测试时增强（TTA），通过对输入的转换版本运行推理，从而可能提高检测精度，但会牺牲推理速度。 |
-| `agnostic_nms` | `bool`      | `False` | 启用与类别无关的 [非极大值抑制](https://www.ultralytics.com/glossary/non-maximum-suppression-nms)，它合并重叠的框，而不管其预测的类别如何。对于以实例为中心的应用程序很有用。 |
-| `single_cls`   | `bool`      | `False` | 在验证期间将所有类别视为单一类别。这对于评估二元检测任务中的模型性能或类别区分并不重要时非常有用。 |
-| `visualize`    | `bool`      | `False` | 可视化每张图像的真值、真正例、假正例和假反例。 有助于调试和模型解释。 |
+| 参数           | 类型            | 默认值  | 描述                                                         |
+| :------------- | :-------------- | :------ | :----------------------------------------------------------- |
+| `data`         | `str`           | `None`  | 指定数据集配置文件（例如， `coco8.yaml`）的路径。 此文件包含指向 [验证数据的路径](https://www.ultralytics.com/glossary/validation-data)，类别名称和类别数量。 |
+| `imgsz`        | `int`           | `640`   | 定义输入图像的大小。所有图像在处理前都会调整为此尺寸。较大的尺寸可能会提高小目标的准确性，但会增加计算时间。 |
+| `batch`        | `int`           | `16`    | 设置每个批次的图像数量。较高的值能更有效地利用 GPU 内存，但需要更多的 VRAM。根据可用的硬件资源进行调整。 |
+| `save_json`    | `bool`          | `False` | 可视化参数： `True`，将结果保存到 JSON 文件中，以便进一步分析、与其他工具集成或提交到 COCO 等评估服务器。 |
+| `conf`         | `float`         | `0.001` | 设置检测的最小置信度阈值。较低的值会提高召回率，但也可能引入更多的假阳性。在[验证](https://docs.ultralytics.com/zh/modes/val/)期间用于计算精确率-召回率曲线。 |
+| `iou`          | `float`         | `0.7`   | 设置[交并比（Intersection Over Union）](https://www.ultralytics.com/glossary/intersection-over-union-iou)阈值，用于[非极大值抑制（Non-Maximum Suppression）](https://www.ultralytics.com/glossary/non-maximum-suppression-nms)。控制重复检测的消除。 |
+| `max_det`      | `int`           | `300`   | 限制每幏图像的最大检测数量。在密集场景中非常有用，可防止过度检测和管理计算资源。 |
+| `half`         | `bool`          | `True`  | 启用半[精度](https://www.ultralytics.com/glossary/precision) (FP16) 计算，从而减少内存使用量，并可能在对[准确性](https://www.ultralytics.com/glossary/accuracy)影响最小的情况下提高速度。 |
+| `device`       | `str`           | `None`  | 指定验证的设备（`cpu`, `cuda:0`，等等）。当 `None`，自动选择最佳可用设备。多个 CUDA 设备可以用逗号分隔指定。 |
+| `dnn`          | `bool`          | `False` | 可视化参数： `True`，使用 [OpenCV](https://www.ultralytics.com/glossary/opencv) DNN 模块进行 ONNX 模型推理，从而提供了一种替代 [PyTorch](https://www.ultralytics.com/glossary/pytorch) 推理方法。 |
+| `plots`        | `bool`          | `False` | 当设置为 `True`，生成并保存预测与真实值的对比图、混淆矩阵和 PR 曲线，以便对模型性能进行可视化评估。 |
+| `classes`      | `list[int]`     | `None`  | 指定要训练的类 ID 列表。可用于在评估期间过滤并仅关注某些类。 |
+| `rect`         | `bool`          | `True`  | 可视化参数： `True`，使用矩形推理进行批处理，减少填充，并通过以原始宽高比处理图像来潜在地提高速度和效率。 |
+| `split`        | `str`           | `'val'` | 确定用于验证的数据集分割（`val`, `test`或 `train`）。 允许灵活选择数据段进行性能评估。 |
+| `project`      | `str`           | `None`  | 用于保存验证输出的项目目录的名称。有助于组织来自不同实验或模型的结果。 |
+| `name`         | `str`           | `None`  | 验证运行的名称。用于在项目文件夹中创建一个子目录，用于存储验证日志和输出。 |
+| `verbose`      | `bool`          | `False` | 可视化参数： `True`，在验证过程中显示详细信息，包括每个类别的指标、批次进度和其他调试信息。 |
+| `save_txt`     | `bool`          | `False` | 可视化参数： `True`，将检测结果保存在文本文件中，每个图像对应一个文件，可用于进一步分析、自定义后处理或与其他系统集成。 |
+| `save_conf`    | `bool`          | `False` | 可视化参数： `True`，在保存的文本文件中包含置信度值，当 `save_txt` 已启用，提供更详细的输出以供分析和过滤。 |
+| `workers`      | `int`           | `8`     | 用于数据加载的工作线程数。较高的值可以加快数据预处理速度，但可能会增加 CPU 使用率。设置为 0 使用主线程，这在某些环境中可能更稳定。 |
+| `augment`      | `bool`          | `False` | 启用测试时增强（TTA），通过对输入的转换版本运行推理，从而可能提高检测精度，但会牺牲推理速度。 |
+| `agnostic_nms` | `bool`          | `False` | 启用与类别无关的 [非极大值抑制](https://www.ultralytics.com/glossary/non-maximum-suppression-nms)，它合并重叠的框，而不管其预测的类别如何。对于以实例为中心的应用程序很有用。 |
+| `single_cls`   | `bool`          | `False` | 在验证期间将所有类别视为单一类别。这对于评估二元检测任务中的模型性能或类别区分并不重要时非常有用。 |
+| `visualize`    | `bool`          | `False` | 可视化每张图像的真值、真正例、假正例和假反例。 有助于调试和模型解释。 |
+| `compile`      | `bool` 或 `str` | `False` | 启用PyTorch 2.x `torch.compile` 用 `backend='inductor'`.接受 `True` → `"default"`, `False` → 禁用，或字符串模式，如 `"default"`, `"reduce-overhead"`, `"max-autotune"`.如果不支持，则退回到渴望状态，并发出警告。 |
 
 ### default confidence threshold = 0.001
 
@@ -786,14 +1032,79 @@ yolo detect val model=path/to/best.pt # val custom model
 
 ### torch
 
+py
+
+```python
+from pathlib import Path
+from ultralytics import YOLO
+from ultralytics.utils.metrics import DetMetrics
+
+
+model_path = Path("weights/yolo11n.pt").resolve()
+data_path = Path("datasets/coco/coco.yaml").resolve()
+project = "myproject"
+name = "yolo11n/val"
+
+print(f"{model_path} is exists: {model_path.exists()}")
+print(f"{data_path} is exists: {data_path.exists()}")
+
+
+model = YOLO(model_path)
+
+metrics: DetMetrics = model.val(
+    data=data_path,
+    imgsz=640,
+    batch=16,
+    save_json=False,
+    conf=0.001,
+    iou=0.7,
+    max_det=300,
+    half=True,
+    device=0,
+    plots=True,
+    classes=None,  # list[int] | None, 指定要训练的类 ID 列表。可用于在评估期间过滤并仅关注某些类。
+    rect=True,
+    project=project,
+    name=name,
+    verbose=False,
+    save_txt=False,
+    save_conf=False,
+    workers=8,
+    augment=False,
+    agnostic_nms=False,
+    single_cls=False,
+    visualize=False,
+    compile=False,
+)
+
+# print(f"metrics:\n{metrics}\n")
+
+# map50-95
+print(f"map50-95: {metrics.box.map}\n")
+
+# map50
+print(f"map50: {metrics.box.map50}\n")
+
+# map75
+print(f"map75: {metrics.box.map75}\n")
+
+# a list contains map50-95 of each category
+print(f"maps: {metrics.box.maps}\n")
+
+# confusion_matrix
+print(f"confusion_matrix:\n{metrics.confusion_matrix.to_df()}\n")
+```
+
+cmd
+
 ```sh
-yolo detect val imgsz=640 save_json=True save_txt=True save_conf=True conf=0.25 iou=0.6 data=ultralytics/cfg/datasets/coco8.yaml model=weights/yolo11n.pt device=0
+yolo detect val imgsz=640 save_json=True save_txt=True save_conf=True conf=0.25 iou=0.7 data=ultralytics/cfg/datasets/coco8.yaml model=weights/yolo11n.pt device=0 project=myproject name=yolo11n/val
 ```
 
 ### torchscript
 
 ```sh
-yolo detect val imgsz=640 save_json=True save_txt=True save_conf=True conf=0.25 iou=0.6 data=ultralytics/cfg/datasets/coco8.yaml model=weights/yolo11n.torchscript device=0
+yolo detect val imgsz=640 save_json=True save_txt=True save_conf=True conf=0.25 iou=0.7 data=ultralytics/cfg/datasets/coco8.yaml model=weights/yolo11n.torchscript device=0 project=myproject name=yolo11n/val
 ```
 
 ### onnx
@@ -803,7 +1114,7 @@ yolo detect val imgsz=640 save_json=True save_txt=True save_conf=True conf=0.25 
 > `onnxruntime` 和 `onnxruntime-gpu` 不要同时安装，否则使用 `gpu` 推理时速度会很慢，如果同时安装了2个包，要全部卸载，再安装 `onnxruntime-gpu` 才能使用gpu推理，否则gpu速度会很慢
 
 ```sh
-yolo detect val imgsz=640 save_json=True save_txt=True save_conf=True conf=0.25 iou=0.6 data=ultralytics/cfg/datasets/coco8.yaml model=weights/yolo11n.onnx device=0
+yolo detect val imgsz=640 save_json=True save_txt=True save_conf=True conf=0.25 iou=0.7 data=ultralytics/cfg/datasets/coco8.yaml model=weights/yolo11n.onnx device=0 project=myproject name=yolo11n/val
 ```
 
 ### openvino
@@ -811,13 +1122,13 @@ yolo detect val imgsz=640 save_json=True save_txt=True save_conf=True conf=0.25 
 > 注意：openvino没法使用cuda，但是使用 --device 0 会提高推理速度
 
 ```sh
-yolo detect val imgsz=640 save_json=True save_txt=True save_conf=True conf=0.25 iou=0.6 data=ultralytics/cfg/datasets/coco8.yaml model=weights/yolo11n_openvnio_model device=cpu
+yolo detect val imgsz=640 save_json=True save_txt=True save_conf=True conf=0.25 iou=0.7 data=ultralytics/cfg/datasets/coco8.yaml model=weights/yolo11n_openvnio_model device=cpu project=myproject name=yolo11n/val
 ```
 
 ### tensorrt
 
 ```sh
-yolo detect val imgsz=640 save_json=True save_txt=True save_conf=True conf=0.25 iou=0.6 data=ultralytics/cfg/datasets/coco8.yaml model=weights/yolo11n.onnx device=0 half=True
+yolo detect val imgsz=640 save_json=True save_txt=True save_conf=True conf=0.25 iou=0.7 data=ultralytics/cfg/datasets/coco8.yaml model=weights/yolo11n.onnx device=0 half=True project=myproject name=yolo11n/val
 ```
 
 # [预测](https://docs.ultralytics.com/zh/modes/predict/)
@@ -1184,6 +1495,7 @@ model.predict("https://ultralytics.com/images/bus.jpg", save=True, imgsz=320, co
 | `name`          | `str`            | `None`                 | 预测运行的名称。用于在项目文件夹中创建一个子目录，如果 `save` 已启用，则为保存预测输出的项目目录的名称。 |
 | `stream`        | `bool`           | `False`                | 通过返回 Results 对象的生成器而不是一次将所有帧加载到内存中，从而为长视频或大量图像启用内存高效处理。 |
 | `verbose`       | `bool`           | `True`                 | 控制是否在终端中显示详细的推理日志，从而提供有关预测过程的实时反馈。 |
+| `compile`       | `bool` 或 `str`  | `False`                | 启用PyTorch 2.x `torch.compile` 用 `backend='inductor'`.接受 `True` → `"default"`, `False` → 禁用，或字符串模式，如 `"default"`, `"reduce-overhead"`, `"max-autotune"`.如果不支持，则退回到渴望状态，并发出警告。 |
 
 可视化参数：
 
@@ -1597,18 +1909,80 @@ cv2.destroyAllWindows()
 
 ### torch
 
-```sh
-yolo detect predict imgsz=640 save=True save_txt=True save_conf=True save_crop=True conf=0.25 iou=0.6 data=ultralytics/cfg/datasets/coco8.yaml model=weights/yolo11n.pt source=ultralytics/assets/bus.jpg device=0
+py
 
-yolo detect predict imgsz=640 save=True save_txt=True save_conf=True save_crop=True conf=0.25 iou=0.6 data=ultralytics/cfg/datasets/coco8.yaml model=weights/yolo11n.pt source=../datasets/coco8/images/train2017 device=0
+```python
+from pathlib import Path
+from ultralytics import YOLO
+from ultralytics.engine.results import Results
+
+
+model_path = Path("weights/yolo11n.pt").resolve()
+source = Path("datasets/coco/images/val2017/000000000139.jpg").resolve()
+source = Path("datasets/coco/images/val2017/").resolve()
+project = "myproject"
+name = "yolo11n/predict"
+
+print(f"{model_path} is exists: {model_path.exists()}")
+print(f"{source} is exists: {source.exists()}")
+
+
+model = YOLO(model_path)
+
+results = model(
+    source,
+    conf=0.25,
+    iou=0.7,
+    imgsz=640,
+    rect=True,
+    half=True,
+    device=0,
+    batch=16,
+    max_det=300,
+    augment=False,
+    agnostic_nms=False,
+    classes=None,  # list[int] | None, 将预测结果筛选到一组类别 ID。只会返回属于指定类别的检测结果。这对于专注于多类别检测任务中的相关对象非常有用。
+    project=project,
+    name=name,
+    stream=True,
+    verbose=True,
+    compile=False,
+    show=False,
+    save=True,
+    save_txt=False,
+    save_conf=False,
+    save_crop=False,
+    show_labels=True,
+    show_conf=True,
+    show_boxes=True,
+    line_width=None,
+)
+
+result: Results
+for result in results:
+    boxes = result.boxes  # Boxes object for bounding box outputs
+    masks = result.masks  # Masks object for segmentation masks outputs
+    keypoints = result.keypoints  # Keypoints object for pose outputs
+    probs = result.probs  # Probs object for classification outputs
+    obb = result.obb  # Oriented boxes object for OBB outputs
+    # result.show()  # display to screen
+    # result.save(filename="result.jpg")  # save to disk
+```
+
+cmd
+
+```sh
+yolo detect predict imgsz=640 save=True save_txt=True save_conf=True save_crop=True conf=0.25 iou=0.7 data=ultralytics/cfg/datasets/coco8.yaml model=weights/yolo11n.pt source=ultralytics/assets/bus.jpg device=0 project=myproject name=yolo11n/predict
+
+yolo detect predict imgsz=640 save=True save_txt=True save_conf=True save_crop=True conf=0.25 iou=0.7 data=ultralytics/cfg/datasets/coco8.yaml model=weights/yolo11n.pt source=../datasets/coco8/images/train2017 device=0 project=myproject name=yolo11n/predict
 ```
 
 ### torchscript
 
 ```sh
-yolo detect predict imgsz=640 save=True save_txt=True save_conf=True save_crop=True conf=0.25 iou=0.6 data=ultralytics/cfg/datasets/coco8.yaml model=weights/yolo11n.torchscript source=ultralytics/assets/bus.jpg device=0
+yolo detect predict imgsz=640 save=True save_txt=True save_conf=True save_crop=True conf=0.25 iou=0.7 data=ultralytics/cfg/datasets/coco8.yaml model=weights/yolo11n.torchscript source=ultralytics/assets/bus.jpg device=0 project=myproject name=yolo11n/predict
 
-yolo detect predict imgsz=640 save=True save_txt=True save_conf=True save_crop=True conf=0.25 iou=0.6 data=ultralytics/cfg/datasets/coco8.yaml model=weights/yolo11n.torchscript source=../datasets/coco8/images/train2017 device=0
+yolo detect predict imgsz=640 save=True save_txt=True save_conf=True save_crop=True conf=0.25 iou=0.7 data=ultralytics/cfg/datasets/coco8.yaml model=weights/yolo11n.torchscript source=../datasets/coco8/images/train2017 device=0 project=myproject name=yolo11n/predict
 ```
 
 ### onnx
@@ -1618,14 +1992,14 @@ yolo detect predict imgsz=640 save=True save_txt=True save_conf=True save_crop=T
 > `onnxruntime` 和 `onnxruntime-gpu` 不要同时安装，否则使用 `gpu` 推理时速度会很慢，如果同时安装了2个包，要全部卸载，再安装 `onnxruntime-gpu` 才能使用gpu推理，否则gpu速度会很慢
 
 ```sh
-yolo detect predict imgsz=640 save=True save_txt=True save_conf=True save_crop=True conf=0.25 iou=0.6 data=ultralytics/cfg/datasets/coco8.yaml model=weights/yolo11n.onnx source=ultralytics/assets/bus.jpg device=0
-yolo detect predict imgsz=640 save=True save_txt=True save_conf=True save_crop=True conf=0.25 iou=0.6 data=ultralytics/cfg/datasets/coco8.yaml model=weights/yolo11n.onnx source=../datasets/coco8/images/train2017 device=0
+yolo detect predict imgsz=640 save=True save_txt=True save_conf=True save_crop=True conf=0.25 iou=0.7 data=ultralytics/cfg/datasets/coco8.yaml model=weights/yolo11n.onnx source=ultralytics/assets/bus.jpg device=0 project=myproject name=yolo11n/predict
+yolo detect predict imgsz=640 save=True save_txt=True save_conf=True save_crop=True conf=0.25 iou=0.7 data=ultralytics/cfg/datasets/coco8.yaml model=weights/yolo11n.onnx source=../datasets/coco8/images/train2017 device=0 project=myproject name=yolo11n/predict
 
-yolo detect predict imgsz=640 save=True save_txt=True save_conf=True save_crop=True conf=0.25 iou=0.6 data=ultralytics/cfg/datasets/coco8.yaml model=weights/yolo11n.fp16.onnx half=True source=ultralytics/assets/bus.jpg device=0           # fp16模型需要 half=True
-yolo detect predict imgsz=640 save=True save_txt=True save_conf=True save_crop=True conf=0.25 iou=0.6 data=ultralytics/cfg/datasets/coco8.yaml model=weights/yolo11n.fp16.onnx half=True source=../datasets/coco8/images/train2017 device=0
+yolo detect predict imgsz=640 save=True save_txt=True save_conf=True save_crop=True conf=0.25 iou=0.7 data=ultralytics/cfg/datasets/coco8.yaml model=weights/yolo11n.fp16.onnx half=True source=ultralytics/assets/bus.jpg device=0 project=myproject name=yolo11n/predict           # fp16模型需要 half=True
+yolo detect predict imgsz=640 save=True save_txt=True save_conf=True save_crop=True conf=0.25 iou=0.7 data=ultralytics/cfg/datasets/coco8.yaml model=weights/yolo11n.fp16.onnx half=True source=../datasets/coco8/images/train2017 device=0 project=myproject name=yolo11n/predict
 
-yolo detect predict imgsz=640 save=True save_txt=True save_conf=True save_crop=True conf=0.25 iou=0.6 data=ultralytics/cfg/datasets/coco8.yaml model=weights/yolo11n.cpu.dynamic.onnx source=ultralytics/assets/bus.jpg device=0              # 使用cpu导出的dynamic模型可以用gpu推理
-yolo detect predict imgsz=640 save=True save_txt=True save_conf=True save_crop=True conf=0.25 iou=0.6 data=ultralytics/cfg/datasets/coco8.yaml model=weights/yolo11n.cpu.dynamic.onnx source=../datasets/coco8/images/train2017 device=0
+yolo detect predict imgsz=640 save=True save_txt=True save_conf=True save_crop=True conf=0.25 iou=0.7 data=ultralytics/cfg/datasets/coco8.yaml model=weights/yolo11n.cpu.dynamic.onnx source=ultralytics/assets/bus.jpg device=0 project=myproject name=yolo11n/predict              # 使用cpu导出的dynamic模型可以用gpu推理
+yolo detect predict imgsz=640 save=True save_txt=True save_conf=True save_crop=True conf=0.25 iou=0.7 data=ultralytics/cfg/datasets/coco8.yaml model=weights/yolo11n.cpu.dynamic.onnx source=../datasets/coco8/images/train2017 device=0 project=myproject name=yolo11n/predict
 ```
 
 ### openvino
@@ -1633,22 +2007,22 @@ yolo detect predict imgsz=640 save=True save_txt=True save_conf=True save_crop=T
 > 注意：openvino没法使用cuda，但是使用 `device=0` 会提高推理速度
 
 ```sh
-yolo detect predict imgsz=640 save=True save_txt=True save_conf=True save_crop=True conf=0.25 iou=0.6 data=ultralytics/cfg/datasets/coco8.yaml model=weights/yolo11n_openvino_model source=ultralytics/assets/bus.jpg device=cpu
+yolo detect predict imgsz=640 save=True save_txt=True save_conf=True save_crop=True conf=0.25 iou=0.7 data=ultralytics/cfg/datasets/coco8.yaml model=weights/yolo11n_openvino_model source=ultralytics/assets/bus.jpg device=cpu project=myproject name=yolo11n/predict
 
-yolo detect predict imgsz=640 save=True save_txt=True save_conf=True save_crop=True conf=0.25 iou=0.6 data=ultralytics/cfg/datasets/coco8.yaml model=weights/yolo11n_openvino_model source=../datasets/coco8/images/train2017 device=cpu
+yolo detect predict imgsz=640 save=True save_txt=True save_conf=True save_crop=True conf=0.25 iou=0.7 data=ultralytics/cfg/datasets/coco8.yaml model=weights/yolo11n_openvino_model source=../datasets/coco8/images/train2017 device=cpu project=myproject name=yolo11n/predict
 ```
 
 ### tensorrt
 
 ```sh
-yolo detect predict imgsz=640 save=True save_txt=True save_conf=True save_crop=True conf=0.25 iou=0.6 data=ultralytics/cfg/datasets/coco8.yaml model=weights/yolo11n.engine half=True source=ultralytics/assets/bus.jpg device=0                          # fp32模型也能用 --half 推理
-yolo detect predict imgsz=640 save=True save_txt=True save_conf=True save_crop=True conf=0.25 iou=0.6 data=ultralytics/cfg/datasets/coco8.yaml model=weights/yolo11n.engine half=True source=../datasets/coco8/images/train2017 device=0
+yolo detect predict imgsz=640 save=True save_txt=True save_conf=True save_crop=True conf=0.25 iou=0.7 data=ultralytics/cfg/datasets/coco8.yaml model=weights/yolo11n.engine half=True source=ultralytics/assets/bus.jpg device=0 project=myproject name=yolo11n/predict                          # fp32模型也能用 --half 推理
+yolo detect predict imgsz=640 save=True save_txt=True save_conf=True save_crop=True conf=0.25 iou=0.7 data=ultralytics/cfg/datasets/coco8.yaml model=weights/yolo11n.engine half=True source=../datasets/coco8/images/train2017 device=0 project=myproject name=yolo11n/predict
 
-yolo detect predict imgsz=640 save=True save_txt=True save_conf=True save_crop=True conf=0.25 iou=0.6 data=ultralytics/cfg/datasets/coco8.yaml model=weights/yolo11n.fp16.engine half=True source=ultralytics/assets/bus.jpg device=0
-yolo detect predict imgsz=640 save=True save_txt=True save_conf=True save_crop=True conf=0.25 iou=0.6 data=ultralytics/cfg/datasets/coco8.yaml model=weights/yolo11n.fp16.engine half=True source=../datasets/coco8/images/train2017 device=0
+yolo detect predict imgsz=640 save=True save_txt=True save_conf=True save_crop=True conf=0.25 iou=0.7 data=ultralytics/cfg/datasets/coco8.yaml model=weights/yolo11n.fp16.engine half=True source=ultralytics/assets/bus.jpg device=0 project=myproject name=yolo11n/predict
+yolo detect predict imgsz=640 save=True save_txt=True save_conf=True save_crop=True conf=0.25 iou=0.7 data=ultralytics/cfg/datasets/coco8.yaml model=weights/yolo11n.fp16.engine half=True source=../datasets/coco8/images/train2017 device=0 project=myproject name=yolo11n/predict
 
-yolo detect predict imgsz=640 save=True save_txt=True save_conf=True save_crop=True conf=0.25 iou=0.6 data=ultralytics/cfg/datasets/coco8.yaml model=weights/yolo11n.fp32.dynamic.engine half=True source=ultralytics/assets/bus.jpg device=0             # fp32模型也能用 --half 推理
-yolo detect predict imgsz=640 save=True save_txt=True save_conf=True save_crop=True conf=0.25 iou=0.6 data=ultralytics/cfg/datasets/coco8.yaml model=weights/yolo11n.fp32.dynamic.engine half=True source=../datasets/coco8/images/train2017 device=0
+yolo detect predict imgsz=640 save=True save_txt=True save_conf=True save_crop=True conf=0.25 iou=0.7 data=ultralytics/cfg/datasets/coco8.yaml model=weights/yolo11n.fp32.dynamic.engine half=True source=ultralytics/assets/bus.jpg device=0 project=myproject name=yolo11n/predict             # fp32模型也能用 --half 推理
+yolo detect predict imgsz=640 save=True save_txt=True save_conf=True save_crop=True conf=0.25 iou=0.7 data=ultralytics/cfg/datasets/coco8.yaml model=weights/yolo11n.fp32.dynamic.engine half=True source=../datasets/coco8/images/train2017 device=0 project=myproject name=yolo11n/predict
 ```
 
 # [导出](https://docs.ultralytics.com/zh/modes/export/)
@@ -1701,7 +2075,7 @@ yolo export model=path/to/best.pt format=onnx # export custom trained model
 
 ## 导出格式
 
-YOLOv8 可用的导出格式如下表所示。您可以使用 `format` 参数，即 `format='onnx'` 或 `format='engine'`.
+YOLO11 可用的导出格式如下表所示。您可以使用 `format` 参数，即 `format='onnx'` 或 `format='engine'`.
 
 下表列出了可用的 YOLO11 导出格式。您可以使用 `format` 参数导出为任何格式，例如 `format='onnx'` 或 `format='engine'`。您可以直接在导出的模型上进行预测或验证，例如 `yolo predict model=yolo11n.onnx`。导出完成后，将显示您的模型的使用示例。
 
@@ -1729,8 +2103,8 @@ YOLOv8 可用的导出格式如下表所示。您可以使用 `format` 参数，
 ### torchscript
 
 ```sh
-yolo detect export imgsz=640 model=weights/yolo11n.pt format=torchscript device=0
-yolo detect export imgsz=640 model=weights/yolo11n.pt format=torchscript device=cpu optimize=True # optimize not compatible with cuda devices, i.e. use device=cpu
+yolo detect export imgsz=640 model=weights/yolo11n.pt format=torchscript device=0 project=myproject
+yolo detect export imgsz=640 model=weights/yolo11n.pt format=torchscript device=cpu optimize=True project=myproject # optimize not compatible with cuda devices, i.e. use device=cpu
 ```
 
 ### onnx
@@ -1740,23 +2114,23 @@ yolo detect export imgsz=640 model=weights/yolo11n.pt format=torchscript device=
 > `onnxruntime` 和 `onnxruntime-gpu` 不要同时安装，否则使用 `gpu` 推理时速度会很慢，如果同时安装了2个包，要全部卸载，再安装`onnxruntime-gpu` 才能使用gpu推理，否则gpu速度会很慢
 
 ```sh
-yolo detect export imgsz=640 model=weights/yolo11n.pt format=onnx simplify=True device=0
+yolo detect export imgsz=640 model=weights/yolo11n.pt format=onnx simplify=True device=0 project=myproject
 
-yolo detect export imgsz=640 model=weights/yolo11n.pt format=onnx simplify=True device=0 half=True                # half=True only compatible with GPU export, i.e. use device=0
+yolo detect export imgsz=640 model=weights/yolo11n.pt format=onnx simplify=True device=0 half=True project=myproject                # half=True only compatible with GPU export, i.e. use device=0
 
-yolo detect export imgsz=640 model=weights/yolo11n.pt format=onnx simplify=True device=cpu dynamic=True
+yolo detect export imgsz=640 model=weights/yolo11n.pt format=onnx simplify=True device=cpu dynamic=True project=myproject
 
-yolo detect export imgsz=640 model=weights/yolo11n.pt format=onnx simplify=True device=cpu half=True dynamic=True  # 导出失败 half=True not compatible with dynamic=True, i.e. use only one.
+yolo detect export imgsz=640 model=weights/yolo11n.pt format=onnx simplify=True device=cpu half=True dynamic=True project=myproject  # 导出失败 half=True not compatible with dynamic=True, i.e. use only one.
 ```
 
 ### opencv使用的onnx
 
-> https://github.com/ultralytics/ultralytics/tree/main/examples/YOLOv8-OpenCV-ONNX-Python
+> https://github.com/ultralytics/ultralytics/tree/main/examples/YOLO11-OpenCV-ONNX-Python
 
 ```sh
-yolo detect export imgsz=640 model=weights/yolo11n.pt format=onnx simplify=True device=0 opset=12             # opset必须为12
+yolo detect export imgsz=640 model=weights/yolo11n.pt format=onnx simplify=True device=0 opset=12 project=myproject             # opset必须为12
 
-yolo detect export imgsz=640 model=weights/yolo11n.pt format=onnx simplify=True device=0 half=True opset=12   # opset必须为12
+yolo detect export imgsz=640 model=weights/yolo11n.pt format=onnx simplify=True device=0 half=True opset=12 project=myproject   # opset必须为12
 
 # opencv不支持dynamic
 ```
@@ -1764,11 +2138,11 @@ yolo detect export imgsz=640 model=weights/yolo11n.pt format=onnx simplify=True 
 ### openvino
 
 ```sh
-yolo detect export imgsz=640 model=weights/yolo11n.pt format=openvino device=cpu
+yolo detect export imgsz=640 model=weights/yolo11n.pt format=openvino device=cpu project=myproject
 
-yolo detect export imgsz=640 model=weights/yolo11n.pt format=openvino device=cpu half=True
+yolo detect export imgsz=640 model=weights/yolo11n.pt format=openvino device=cpu half=True project=myproject
 
-yolo task =detect export imgsz=640 model=weights/yolo11n.pt format=openvino device=cpu int8=True data=ultralytics/cfg/datasets/coco8.yaml # INT8 export requires a data argument for calibration
+yolo task =detect export imgsz=640 model=weights/yolo11n.pt format=openvino device=cpu int8=True data=ultralytics/cfg/datasets/coco8.yaml project=myproject # INT8 export requires a data argument for calibration
 ```
 
 #### 通过openvino的`ovc`命令将onnx转换为openvino格式(支持**fp16**)
@@ -1784,17 +2158,17 @@ ovc "onnx_path" --output_model "output_path" --compress_to_fp16
 ### tensorrt
 
 ```sh
-yolo detect export imgsz=640 model=weights/yolo11n.pt format=engine simplify=True device=0 # 可以用simplify的onnx
+yolo detect export imgsz=640 model=weights/yolo11n.pt format=engine simplify=True device=0 project=myproject # 可以用simplify的onnx
 
-yolo detect export imgsz=640 model=weights/yolo11n.pt format=engine simplify=True device=0 half=True
+yolo detect export imgsz=640 model=weights/yolo11n.pt format=engine simplify=True device=0 half=True project=myproject
 ```
 
 ### ncnn
 
 ```sh
-yolo detect export imgsz=640 model=weights/yolo11n.pt format=ncnn simplify=True device=0 # 可以用simplify的onnx
+yolo detect export imgsz=640 model=weights/yolo11n.pt format=ncnn simplify=True device=0 project=myproject # 可以用simplify的onnx
 
-yolo detect export imgsz=640 model=weights/yolo11n.pt format=ncnn simplify=True device=0 half=True
+yolo detect export imgsz=640 model=weights/yolo11n.pt format=ncnn simplify=True device=0 half=True project=myproject
 ```
 
 # [跟踪](https://docs.ultralytics.com/zh/modes/track/)
@@ -2165,7 +2539,7 @@ cv2.destroyAllWindows()
 
 ```sh
 > yolo checks
-Ultralytics YOLOv8.0.195  Python-3.11.4 torch-2.1.0+cu121 CUDA:0 (NVIDIA GeForce GTX 1080 Ti, 11264MiB)
+Ultralytics YOLO11.0.195  Python-3.11.4 torch-2.1.0+cu121 CUDA:0 (NVIDIA GeForce GTX 1080 Ti, 11264MiB)
 Setup complete  (16 CPUs, 31.9 GB RAM, 152.1/200.0 GB disk)
 
 OS                  Windows-10-10.0.19044-SP0
@@ -2209,8 +2583,8 @@ Printing 'C:\Users\Administrator\AppData\Roaming\Ultralytics\settings.yaml'
 
 settings_version: 0.0.4
 datasets_dir: D:\ml\code\datasets
-weights_dir: d:\ml\code\yolov8-ultralytics\weights
-runs_dir: d:\ml\code\yolov8-ultralytics\runs
+weights_dir: d:\ml\code\yolo11-ultralytics\weights
+runs_dir: d:\ml\code\yolo11-ultralytics\runs
 uuid: 062fa24c9a04873db7e870e2df7f4297a2745f5a740d9e7bd868b5884cf0b91a
 sync: true
 api_key: ''
@@ -2229,15 +2603,15 @@ wandb: true
 
 ```sh
 > yolo copy-cfg
-D:\ml\code\yolov8-ultralytics\ultralytics\cfg\default.yaml copied to D:\ml\code\yolov8-ultralytics\default_copy.yaml
+D:\ml\code\yolo11-ultralytics\ultralytics\cfg\default.yaml copied to D:\ml\code\yolo11-ultralytics\default_copy.yaml
 Example YOLO command with this new custom cfg:
-    yolo cfg='D:\ml\code\yolov8-ultralytics\default_copy.yaml' imgsz=320 batch=8
+    yolo cfg='D:\ml\code\yolo11-ultralytics\default_copy.yaml' imgsz=320 batch=8
 ```
 
 ## yolo cfg
 
 ```sh
-Printing 'C:\Users\Administrator\Desktop\self\yolov8-ultralytics\ultralytics\cfg\default.yaml'
+Printing 'C:\Users\Administrator\Desktop\self\yolo11-ultralytics\ultralytics\cfg\default.yaml'
 
 task: detect
 mode: train
