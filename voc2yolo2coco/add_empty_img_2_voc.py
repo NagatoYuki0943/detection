@@ -15,9 +15,10 @@ images = os.listdir(empty_image_dir)
 images = [image for image in images if image.endswith(".jpg")]
 
 print(len(images))
-with open(train_path, mode="a", encoding="utf-8") as f1, open(
-    trainval_path, mode="a", encoding="utf-8"
-) as f2:
+with (
+    open(train_path, mode="a", encoding="utf-8") as f1,
+    open(trainval_path, mode="a", encoding="utf-8") as f2,
+):
     for image in tqdm(images):
         f1.write(image + "\n")
         f2.write(image + "\n")

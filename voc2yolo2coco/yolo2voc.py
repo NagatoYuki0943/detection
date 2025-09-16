@@ -38,7 +38,6 @@ annotation_template = """<annotation>
         </bndbox>
     </object>
 {% endfor %}</annotation>
-
 """
 
 
@@ -114,9 +113,17 @@ def yolo2voc(
         id2name (dict[int, str]): 类别 ID 到名称的映射字典, 只转换存在于 id2name 中的类别
         new_image_dir (str | Path, optional): 新的图片目录, 如果为 None 则不复制图片. Defaults to None.
     """
+    print(
+        "Converting YOLO to VOC...\n"
+        f"txt_dir: {txt_dir}\n"
+        f"xml_dir: {xml_dir}\n"
+        f"image_dir: {image_dir}\n"
+        f"new_image_dir: {new_image_dir}\n"
+        f"id2name: {id2name}"
+    )
+
     txt_dir = Path(txt_dir)
     assert txt_dir.exists()
-
     image_dir = Path(image_dir)
     assert image_dir.exists()
 
@@ -128,30 +135,30 @@ def yolo2voc(
     xml_dir.mkdir(exist_ok=True, parents=True)
 
     for txt_file in tqdm(list(txt_dir.glob("*.txt"))):
-        txt_stem = txt_file.stem
-        image_path = get_image_path(image_dir, txt_stem)
-
-        class_exists = False
-        lines = []
-        with open(txt_file) as f:
-            for line in f.readlines():
-                _line = line.rstrip().split(" ")
-                if len(_line) != 5:
-                    continue
-                _id = int(_line[0])
-                if _id not in id2name:
-                    continue
-                lines.append(_line)
-                class_exists = True
-
-        if not class_exists:
-            continue
-
-        if new_image_dir is not None:
-            new_image_path = new_image_dir / image_path.name
-            copy(image_path, new_image_path)
-
         try:
+            txt_stem = txt_file.stem
+            image_path = get_image_path(image_dir, txt_stem)
+
+            class_exists = False
+            lines = []
+            with open(txt_file) as f:
+                for line in f.readlines():
+                    _line = line.rstrip().split(" ")
+                    if len(_line) != 5:
+                        continue
+                    _id = int(_line[0])
+                    if _id not in id2name:
+                        continue
+                    lines.append(_line)
+                    class_exists = True
+
+            if not class_exists:
+                continue
+
+            if new_image_dir is not None:
+                new_image_path = new_image_dir / image_path.name
+                copy(image_path, new_image_path)
+
             w, h = Image.open(image_path).size
             xml_path = xml_dir / f"{txt_stem}.xml"
             writer = Writer(xml_path, w, h)
