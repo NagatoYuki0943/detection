@@ -118,9 +118,9 @@ def voc2yolo(
 if __name__ == "__main__":
     from config import voc_name2id, coco_name2id
 
-    xml_dir = "../voc/xmls/test2007"
-    txt_dir = "../voc/labels/test2007-1"
-    image_dir = "../voc/images/test2007"
+    xml_dir = "../VOC/xmls/test2007"
+    txt_dir = "../VOC/labels/test2007-1"
+    image_dir = "../VOC/images/test2007"
     new_image_dir = None
     name2id = voc_name2id
 

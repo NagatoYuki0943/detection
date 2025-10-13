@@ -1,5 +1,4 @@
-"""Filter dataset
-"""
+"""Filter dataset"""
 
 from pathlib import Path
 from shutil import copy
@@ -14,24 +13,27 @@ def filter_voc(
     image_dir: str | Path,
     new_xml_dir: str | Path,
     new_image_dir: str | Path,
-    names: dict[str, int],
+    keep_names: dict[str, int],
+    name_remap: dict[str, str] | None = None,
 ) -> None:
-    """Filter VOC dataset by names
+    """Filter VOC dataset by keep_names
 
     Args:
         xml_dir (str | Path): 已有 VOC 格式的 xml 文件目录
         image_dir (str | Path): 已有图片目录
         new_xml_dir (str | Path): 新的 xml 文件目录
         new_image_dir (str | Path, optional): 新的图片目录
-        names (list[str]): 需要保留的类别名称 list
+        keep_names (list[str]): 需要保留的类别名称 list
+        name_remap (dict[str, str] | None): 类别名称映射, 若为 None, 则不进行映射
     """
     print(
-        "Filter VOC dataset by names...\n"
+        "Filter VOC dataset by keep_names...\n"
         f"xml_dir: {xml_dir}\n"
         f"image_dir: {image_dir}\n"
         f"ew_xml_dir: {new_xml_dir}\n"
         f"ew_image_dir: {new_image_dir}\n"
-        f"names: {names}"
+        f"keep_names: {keep_names}\n"
+        f"name_remap: {name_remap}"
     )
 
     xml_dir = Path(xml_dir)
@@ -58,8 +60,11 @@ def filter_voc(
             for obj in objs:
                 root.remove(obj)
                 name = obj.find("name").text
-                if name in names:
+                if name in keep_names:
                     class_exists = True
+                    # name 映射
+                    new_name = name_remap.get(name, name) if name_remap else name
+                    obj.find("name").text = new_name
                     new_objs.append(obj)
 
             if not class_exists:
@@ -82,19 +87,20 @@ def filter_voc(
 if __name__ == "__main__":
     from config import voc_name2id, coco_name2id
 
-    xml_dir = "../voc/xmls/test2007"
-    image_dir = "../voc/images/test2007"
-    new_xml_dir = "../voc/xmls/test2007-2"
-    new_image_dir = "../voc/images/test2007-2"
+    xml_dir = "../VOC/xmls/test2007"
+    image_dir = "../VOC/images/test2007"
+    new_xml_dir = "../VOC/xmls/test2007-2"
+    new_image_dir = "../VOC/images/test2007-2"
+    name_remap = {k: k for k in voc_name2id}
 
     # 复制前一半类别
     i = 0
-    names = []
+    keep_names = []
     original_half_len = len(voc_name2id) // 2
     for key in voc_name2id:
-        names.append(key)
+        keep_names.append(key)
         i += 1
         if i >= original_half_len:
             break
 
-    filter_voc(xml_dir, image_dir, new_xml_dir, new_image_dir, names)
+    filter_voc(xml_dir, image_dir, new_xml_dir, new_image_dir, keep_names, name_remap)

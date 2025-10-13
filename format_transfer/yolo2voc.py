@@ -182,9 +182,9 @@ def yolo2voc(
 if __name__ == "__main__":
     from config import voc_id2name, coco_id2name
 
-    txt_dir = "../voc/labels/test2007"
-    xml_dir = "../voc/xmls/test2007"
-    image_dir = "../voc/images/test2007"
+    txt_dir = "../VOC/labels/test2007"
+    xml_dir = "../VOC/xmls/test2007"
+    image_dir = "../VOC/images/test2007"
     new_image_dir = None
     id2name = voc_id2name
 

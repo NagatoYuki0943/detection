@@ -1,5 +1,4 @@
-"""Filter dataset
-"""
+"""Filter dataset"""
 
 from pathlib import Path
 from shutil import copy
@@ -13,24 +12,27 @@ def filter_yolo(
     image_dir: str | Path,
     new_txt_dir: str | Path,
     new_image_dir: str | Path,
-    ids: dict[int, str],
+    keep_ids: dict[int, str],
+    id_remap: dict[int, int] | None = None,
 ) -> None:
-    """Filter YOLO dataset by ids
+    """Filter YOLO dataset by keep_ids
 
     Args:
         txt_dir (str | Path): 已有 YOLO 格式的 txt 文件的目录
         image_dir (str | Path): 已有图片目录
         new_txt_dir (str | Path): 新的 YOLO 格式的 txt 文件的目录
         new_image_dir (str | Path, optional): 新的图片目录
-        ids (list[int]): 需要保留的类别 id list
+        keep_ids (list[int]): 需要保留的类别 id list
+        id_remap (dict[int, int] | None): 类别 id 映射表, 若为 None, 则不进行映射
     """
     print(
-        "Filter YOLO dataset by ids...\n"
+        "Filter YOLO dataset by keep_ids...\n"
         f"txt_dir: {txt_dir}\n"
         f"image_dir: {image_dir}\n"
         f"ew_txt_dir: {new_txt_dir}\n"
         f"ew_image_dir: {new_image_dir}\n"
-        f"ids: {ids}"
+        f"keep_ids: {keep_ids}\n"
+        f"id_remap: {id_remap}"
     )
 
     txt_dir = Path(txt_dir)
@@ -55,8 +57,11 @@ def filter_yolo(
                     if len(_line) != 5:
                         continue
                     _id = int(_line[0])
-                    if _id not in ids:
+                    if _id not in keep_ids:
                         continue
+                    # id 映射
+                    new_id = id_remap.get(_id, _id) if id_remap else _id
+                    _line = [str(new_id)] + _line[1:]
                     lines.append(_line)
                     class_exists = True
 
@@ -79,19 +84,20 @@ def filter_yolo(
 if __name__ == "__main__":
     from config import voc_id2name, coco_id2name
 
-    txt_dir = "../voc/labels/test2007"
-    image_dir = "../voc/images/test2007"
-    new_txt_dir = "../voc/labels/test2007-2"
-    new_image_dir = "../voc/images/test2007-2"
+    txt_dir = "../VOC/labels/test2007"
+    image_dir = "../VOC/images/test2007"
+    new_txt_dir = "../VOC/labels/test2007-2"
+    new_image_dir = "../VOC/images/test2007-2"
+    id_remap = {k: k for k in voc_id2name}
 
     # 复制前一半类别
     i = 0
-    ids = []
+    keep_ids = []
     original_half_len = len(voc_id2name) // 2
     for key in voc_id2name:
-        ids.append(key)
+        keep_ids.append(key)
         i += 1
         if i >= original_half_len:
             break
 
-    filter_yolo(txt_dir, image_dir, new_txt_dir, new_image_dir, ids)
+    filter_yolo(txt_dir, image_dir, new_txt_dir, new_image_dir, keep_ids)
