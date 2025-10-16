@@ -1,57 +1,79 @@
-"""Filter dataset"""
+"""Filter yolo dataset"""
 
 from pathlib import Path
 from shutil import copy
 import traceback
 from tqdm import tqdm
-from functions import get_image_path
+from functions import get_image_path, load_id2name_from_yaml, save_names_to_yaml
 
 
 def filter_yolo(
-    txt_dir: str | Path,
-    image_dir: str | Path,
-    new_txt_dir: str | Path,
-    new_image_dir: str | Path,
-    keep_ids: dict[int, str],
+    txt_dirs: str | Path | list[str | Path],
+    image_dirs: str | Path | list[str | Path],
+    filtered_save_dir: str | Path,
+    keep_ids: list[int],
     id_remap: dict[int, int] | None = None,
 ) -> None:
     """Filter YOLO dataset by keep_ids
 
     Args:
-        txt_dir (str | Path): 已有 YOLO 格式的 txt 文件的目录
-        image_dir (str | Path): 已有图片目录
-        new_txt_dir (str | Path): 新的 YOLO 格式的 txt 文件的目录
-        new_image_dir (str | Path, optional): 新的图片目录
+        txt_dirs (str | Path | list[str | Path]): 已有 YOLO 格式的 txt 文件的目录
+        image_dirs (str | Path | list[str | Path]): 已有图片目录
+        filtered_save_dir (str | Path): 过滤后的 YOLO 格式的 txt 文件和图片存放目录, 里面会有 txts 和 images 文件夹
         keep_ids (list[int]): 需要保留的类别 id list
         id_remap (dict[int, int] | None): 类别 id 映射表, 若为 None, 则不进行映射
     """
     print(
         "Filter YOLO dataset by keep_ids...\n"
-        f"txt_dir: {txt_dir}\n"
-        f"image_dir: {image_dir}\n"
-        f"ew_txt_dir: {new_txt_dir}\n"
-        f"ew_image_dir: {new_image_dir}\n"
+        f"txt_dirs: {txt_dirs}\n"
+        f"image_dirs: {image_dirs}\n"
+        f"filtered_save_dir: {filtered_save_dir}\n"
         f"keep_ids: {keep_ids}\n"
         f"id_remap: {id_remap}"
     )
 
-    txt_dir = Path(txt_dir)
-    assert txt_dir.exists()
-    image_dir = Path(image_dir)
-    assert image_dir.exists()
+    txt_dirs = [txt_dirs] if isinstance(txt_dirs, (str, Path)) else txt_dirs
+    txt_dirs = [Path(xml_dir) for xml_dir in txt_dirs]
+    image_dirs = [image_dirs] if isinstance(image_dirs, (str, Path)) else image_dirs
+    image_dirs = [Path(xml_dir) for xml_dir in image_dirs]
 
-    new_txt_dir = Path(new_txt_dir)
+    assert len(txt_dirs) == len(image_dirs)
+
+    txt_paths = []
+    image_paths = []
+    for xml_dir, image_dir in zip(txt_dirs, image_dirs):
+        if not xml_dir.exists():
+            raise FileNotFoundError(f"txt_dir not exists: {xml_dir}")
+        if not image_dir.exists():
+            raise FileNotFoundError(f"image_dir not exists: {image_dir}")
+        _xml_paths = list(xml_dir.glob("*.txt"))
+        txt_paths.extend(_xml_paths)
+        image_paths.extend([get_image_path(image_dir, i.stem) for i in _xml_paths])
+
+    filtered_save_dir = Path(filtered_save_dir)
+    new_txt_dir = filtered_save_dir / "txts"
     new_txt_dir.mkdir(exist_ok=True, parents=True)
-    new_image_dir = Path(new_image_dir)
+    new_image_dir = filtered_save_dir / "images"
     new_image_dir.mkdir(exist_ok=True, parents=True)
+    new_yaml_path = filtered_save_dir / "filtered.yaml"
 
-    for txt_file in tqdm(list(txt_dir.glob("*.txt"))):
+    if id_remap:
+        new_ids = [id_remap.get(i, i) for i in keep_ids]
+    else:
+        new_ids = keep_ids
+    new_names = sorted([id2name[i] for i in new_ids])
+    save_names_to_yaml(new_yaml_path, new_names)
+
+    i = 0
+    txt_path: Path
+    image_path: Path
+    for txt_path, image_path in tqdm(
+        zip(txt_paths, image_paths), desc="filter txt files", total=len(txt_paths)
+    ):
         try:
-            image_path = get_image_path(image_dir, txt_file.stem)
-
             class_exists = False
             lines = []
-            with open(txt_file) as f:
+            with open(txt_path, "r", encoding="utf-8") as f:
                 for line in f.readlines():
                     _line = line.rstrip().split(" ")
                     if len(_line) != 5:
@@ -68,36 +90,44 @@ def filter_yolo(
             if not class_exists:
                 continue
 
-            new_txt_file = new_txt_dir / txt_file.name
-            with open(new_txt_file, "w") as f:
+            new_txt_path = new_txt_dir / txt_path.name
+            with open(new_txt_path, "w", encoding="utf-8") as f:
                 for line in lines:
                     f.write(" ".join(line) + "\n")
 
             new_image_path = new_image_dir / image_path.name
             copy(image_path, new_image_path)
+
+            i += 1
         except FileNotFoundError:
             print(f"Image file not found: {image_path}")
         except Exception:
             print(f"Error: {traceback.format_exc()}")
 
+    print(f"total {len(txt_paths)} txt files, filtered {i} txt files.")
+
 
 if __name__ == "__main__":
-    from config import voc_id2name, coco_id2name
+    # 原本 txt 文件路径, 支持多个目录
+    txt_dirs = [
+        "../VOC/labels/test2007",
+    ]
+    # 原本图片文件路径, 支持多个目录, 但是要和 txt_dirs 一一匹配
+    image_dirs = [
+        "../VOC/images/test2007",
+    ]
+    # 过滤后的 xmls 和 images 的存放路径, 里面会有 xmls 和 images 文件夹
+    filtered_save_dir = "../VOC/test2007--filtered"
+    # 对应的 yaml 文件路径(不是必须, 当前主要目的是获取类别名称)
+    yaml_path = "../VOC/VOC.yaml"
 
-    txt_dir = "../VOC/labels/test2007"
-    image_dir = "../VOC/images/test2007"
-    new_txt_dir = "../VOC/labels/test2007-2"
-    new_image_dir = "../VOC/images/test2007-2"
-    id_remap = {k: k for k in voc_id2name}
+    id2name = load_id2name_from_yaml(yaml_path)
+    ids = sorted(id2name.keys())
 
-    # 复制前一半类别
-    i = 0
-    keep_ids = []
-    original_half_len = len(voc_id2name) // 2
-    for key in voc_id2name:
-        keep_ids.append(key)
-        i += 1
-        if i >= original_half_len:
-            break
+    # 保留的类别 id, 这里保留前一半类别
+    keep_ids = ids[: len(ids) // 2]
 
-    filter_yolo(txt_dir, image_dir, new_txt_dir, new_image_dir, keep_ids)
+    # id 的重映射
+    id_remap = {i: i for i in ids}
+
+    filter_yolo(txt_dirs, image_dirs, filtered_save_dir, keep_ids, id_remap)

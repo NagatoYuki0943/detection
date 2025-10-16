@@ -9,53 +9,67 @@ import traceback
 from PIL import Image
 from xml.etree import ElementTree
 from tqdm import tqdm
-from functions import get_image_path
+from functions import get_image_path, load_name2id_from_yaml
 
 
 def voc2yolo(
-    xml_dir: str | Path,
-    txt_dir: str | Path,
-    image_dir: str | Path,
+    xml_dirs: str | Path | list[str | Path],
+    image_dirs: str | Path | list[str | Path],
+    new_txt_dir: str | Path,
     name2id: dict[str, int],
     new_image_dir: str | Path = None,
 ) -> None:
     """Convert VOC to YOLO
 
     Args:
-        xml_dir (str | Path): 已有 VOC 格式的 xml 文件目录
-        txt_dir (str | Path): 新的 YOLO 格式的 txt 文件目录
-        image_dir (str | Path): 已有图片目录
+        xml_dirs (str | Path | list[str | Path]): 已有 VOC 格式的 xml 文件目录
+        image_dirs (str | Path | list[str | Path]): 已有图片目录
+        new_txt_dir (str | Path): 新的 YOLO 格式的 txt 文件目录
         name2id (dict[str, int]): 类别名称到 ID 的映射, 只转换存在于 name2id 中的类别
         new_image_dir (str | Path, optional): 新的图片目录, 如果为 None 则不复制图片. Defaults to None.
     """
     print(
         "Converting VOC to YOLO...\n"
-        f"xml_dir: {xml_dir}\n"
-        f"txt_dir: {txt_dir}\n"
-        f"image_dir: {image_dir}\n"
+        f"xml_dirs: {xml_dirs}\n"
+        f"image_dirs: {image_dirs}\n"
+        f"new_txt_dir: {new_txt_dir}\n"
         f"new_image_dir: {new_image_dir}\n"
         f"name2id: {name2id}"
     )
 
-    xml_dir = Path(xml_dir)
-    assert xml_dir.exists()
-    image_dir = Path(image_dir)
-    assert image_dir.exists()
+    xml_dirs = [xml_dirs] if isinstance(xml_dirs, (str, Path)) else xml_dirs
+    xml_dirs = [Path(xml_dir) for xml_dir in xml_dirs]
+    image_dirs = [image_dirs] if isinstance(image_dirs, (str, Path)) else image_dirs
+    image_dirs = [Path(xml_dir) for xml_dir in image_dirs]
 
-    txt_dir = Path(txt_dir)
-    txt_dir.mkdir(exist_ok=True, parents=True)
+    assert len(xml_dirs) == len(image_dirs)
+
+    xml_paths = []
+    image_paths = []
+    for xml_dir, image_dir in zip(xml_dirs, image_dirs):
+        if not xml_dir.exists():
+            raise FileNotFoundError(f"xml_dir not exists: {xml_dir}")
+        if not image_dir.exists():
+            raise FileNotFoundError(f"image_dir not exists: {image_dir}")
+        _xml_paths = list(xml_dir.glob("*.xml"))
+        xml_paths.extend(_xml_paths)
+        image_paths.extend([get_image_path(image_dir, i.stem) for i in _xml_paths])
+
+    new_txt_dir = Path(new_txt_dir)
+    new_txt_dir.mkdir(exist_ok=True, parents=True)
 
     new_image_dir = Path(new_image_dir) if new_image_dir is not None else None
     if new_image_dir is not None:
         new_image_dir.mkdir(exist_ok=True, parents=True)
 
-    for xml_file in tqdm(list(xml_dir.glob("*.xml"))):
+    xml_path: Path
+    image_path: Path
+    for xml_path, image_path in tqdm(zip(xml_paths, image_paths), desc="convert xml to txt", total=len(xml_paths)):
         try:
-            xml_stem = xml_file.stem
-            txt_path = txt_dir / f"{xml_stem}.txt"
-            image_path = get_image_path(image_dir, xml_stem)
+            xml_stem = xml_path.stem
+            txt_path = new_txt_dir / f"{xml_stem}.txt"
 
-            with open(xml_file) as in_file:
+            with open(xml_path, "r", encoding="utf-8") as in_file:
                 tree = ElementTree.parse(in_file)
 
             w, h = Image.open(image_path).size
@@ -75,7 +89,7 @@ def voc2yolo(
                 new_image_path = new_image_dir / image_path.name
                 copy(image_path, new_image_path)
 
-            with open(txt_path, "w") as out_file:
+            with open(txt_path, "w", encoding="utf-8") as out_file:
                 for obj in objs:
                     name = obj.find("name").text
 
@@ -116,12 +130,20 @@ def voc2yolo(
 
 
 if __name__ == "__main__":
-    from config import voc_name2id, coco_name2id
-
-    xml_dir = "../VOC/xmls/test2007"
-    txt_dir = "../VOC/labels/test2007-1"
-    image_dir = "../VOC/images/test2007"
+    # 原本的 xml 文件夹
+    xml_dirs = [
+        "../VOC/xmls/test2007",
+    ]
+    # 原本图片文件夹
+    image_dirs = [
+        "../VOC/images/test2007",
+    ]
+    # 新的 txt 文件夹
+    new_txt_dir = "../VOC/labels/test2007"
+    # yaml 配置路径
+    yaml_path = "../VOC/VOC.yaml"
+    name2id = load_name2id_from_yaml(yaml_path)
+    # 新的图片文件夹, 如果为 None 则不复制图片
     new_image_dir = None
-    name2id = voc_name2id
 
-    voc2yolo(xml_dir, txt_dir, image_dir, name2id, new_image_dir)
+    voc2yolo(xml_dirs, image_dirs, new_txt_dir, name2id, new_image_dir)
