@@ -710,7 +710,7 @@ YOLO 模型的训练设置包括训练过程中使用的各种超参数和配置
 | [`auto_augment`](https://docs.ultralytics.com/zh/guides/yolo-data-augmentation/#auto-augment-auto_augment) | `str`   | `randaugment` | `classify`                                     | -             | 应用预定义的增强策略（`'randaugment'`, `'autoaugment'`或 `'augmix'`）通过视觉多样性来增强模型性能。 |
 | [`erasing`](https://docs.ultralytics.com/zh/guides/yolo-data-augmentation/#random-erasing-erasing) | `float` | `0.4`         | `classify`                                     | `0.0 - 0.9`   | 在训练期间随机擦除图像区域，以鼓励模型关注不太明显的特征。   |
 
-## example
+## Example
 
 py
 
@@ -1099,12 +1099,6 @@ cmd
 
 ```sh
 yolo detect val imgsz=640 save_json=True save_txt=True save_conf=True conf=0.25 iou=0.7 data=ultralytics/cfg/datasets/coco8.yaml model=weights/yolo11n.pt device=0 project=myproject name=yolo11n/val
-```
-
-### torchscript
-
-```sh
-yolo detect val imgsz=640 save_json=True save_txt=True save_conf=True conf=0.25 iou=0.7 data=ultralytics/cfg/datasets/coco8.yaml model=weights/yolo11n.torchscript device=0 project=myproject name=yolo11n/val
 ```
 
 ### onnx
@@ -1983,14 +1977,6 @@ yolo detect predict imgsz=640 save=True save_txt=True save_conf=True save_crop=T
 yolo detect predict imgsz=640 save=True save_txt=True save_conf=True save_crop=True conf=0.25 iou=0.7 data=ultralytics/cfg/datasets/coco8.yaml model=weights/yolo11n.pt source=../datasets/coco8/images/train2017 device=0 project=myproject name=yolo11n/predict
 ```
 
-### torchscript
-
-```sh
-yolo detect predict imgsz=640 save=True save_txt=True save_conf=True save_crop=True conf=0.25 iou=0.7 data=ultralytics/cfg/datasets/coco8.yaml model=weights/yolo11n.torchscript source=ultralytics/assets/bus.jpg device=0 project=myproject name=yolo11n/predict
-
-yolo detect predict imgsz=640 save=True save_txt=True save_conf=True save_crop=True conf=0.25 iou=0.7 data=ultralytics/cfg/datasets/coco8.yaml model=weights/yolo11n.torchscript source=../datasets/coco8/images/train2017 device=0 project=myproject name=yolo11n/predict
-```
-
 ### onnx
 
 > 注意:
@@ -2105,18 +2091,33 @@ yolo export model=path/to/best.pt format=onnx # export custom trained model
 
 ## Example
 
-### torchscript
-
-```sh
-yolo detect export imgsz=640 model=weights/yolo11n.pt format=torchscript device=0 project=myproject
-yolo detect export imgsz=640 model=weights/yolo11n.pt format=torchscript device=cpu optimize=True project=myproject # optimize not compatible with cuda devices, i.e. use device=cpu
-```
-
 ### onnx
 
 > 注意:
 >
 > `onnxruntime` 和 `onnxruntime-gpu` 不要同时安装，否则使用 `gpu` 推理时速度会很慢，如果同时安装了2个包，要全部卸载，再安装`onnxruntime-gpu` 才能使用gpu推理，否则gpu速度会很慢
+
+py
+
+```py
+from ultralytics import YOLO
+
+
+# Load a model
+model = YOLO("weights/yolo11n.pt")  # load an official model
+# model = YOLO("path/to/best.pt")  # load a custom trained model
+
+# Export the model
+model.export(
+    format="onnx",
+    half=True,
+    device="cuda:0",
+    simplify=True,
+    dynamic=True,
+)
+```
+
+cmd
 
 ```sh
 yolo detect export imgsz=640 model=weights/yolo11n.pt format=onnx simplify=True device=0 project=myproject
