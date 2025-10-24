@@ -3,23 +3,20 @@
 from pathlib import Path
 import traceback
 from tqdm import tqdm
+import yaml
 from collections import Counter
 
 
-def filter_yolo(
-    txt_dirs: str | Path | list[str | Path],
+def fetch_yolo(
+    txt_dirs: str | Path | list[str | Path], yaml_path: str | Path | None = None
 ) -> None:
-    """Filter YOLO dataset by keep_ids
+    """Fetch YOLO dataset by keep_ids
 
     Args:
         txt_dirs (str | Path | list[str | Path): 已有 YOLO 格式的 txt 文件的目录
-        image_dir (str | Path): 已有图片目录
-        new_txt_dir (str | Path): 新的 YOLO 格式的 txt 文件的目录
-        new_image_dir (str | Path, optional): 新的图片目录
-        keep_ids (list[int]): 需要保留的类别 id list
-        id_remap (dict[int, int] | None): 类别 id 映射表, 若为 None, 则不进行映射
+        yaml_path: 输出的 yaml 文件路径, 默认为 None, 不输出 yaml 文件
     """
-    print(f"Filter YOLO dataset by keep_ids...\ntxt_dirs: {txt_dirs}")
+    print(f"Fetch VOC ...\nxml_dirs: {txt_dirs}\noutput_yaml_path: {yaml_path}")
 
     txt_dirs = [txt_dirs] if isinstance(txt_dirs, (str, Path)) else txt_dirs
     txt_dirs = [Path(xml_dir) for xml_dir in txt_dirs]
@@ -30,6 +27,7 @@ def filter_yolo(
             raise FileNotFoundError(f"txt_dir not exists: {txt_dir}")
         txt_paths.extend(txt_dir.glob("*.txt"))
 
+    i = 0
     ids = []
     for txt_path in tqdm(txt_paths, desc="check val txt files"):
         try:
@@ -38,6 +36,7 @@ def filter_yolo(
                     _line = line.rstrip().split(" ")
                     if len(_line) != 5:
                         continue
+                    i += 1
                     ids.append(int(_line[0]))
 
         except Exception:
@@ -49,11 +48,28 @@ def filter_yolo(
     for _id, count in counters.items():
         print(f"    {_id}: {count}")
 
+    if yaml_path is not None:
+        yaml_path = Path(yaml_path)
+        data = {
+            "names": {i: name for i, name in enumerate(counters)},
+            "statistics": {
+                "total_files": len(txt_paths),
+                "total_objects": i,
+                "counts": counters,
+            },
+        }
+        with open(yaml_path, mode="w", encoding="utf-8") as f:
+            yaml.dump(data, f, allow_unicode=True, sort_keys=False)
+
+        print(f"save yaml config to: {yaml_path}")
+
 
 if __name__ == "__main__":
     # txt 文件所在目录, 支持多个目录
     txt_dirs = [
         "../VOC/labels/test2007",
     ]
+    # 生成的类别 yaml 文件
+    yaml_path = "../VOC/data.yaml"
 
-    filter_yolo(txt_dirs)
+    fetch_yolo(txt_dirs, yaml_path)

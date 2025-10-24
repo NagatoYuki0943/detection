@@ -61,10 +61,13 @@ def save_names_to_yaml(yaml_path: str | Path, names: list[str]):
 def save_id2names_and_path_to_yaml(
     yaml_path: str | Path,
     id2names: dict[int, str],
+    path: str | Path = None,
     train_paths: list[str | Path] | str | Path = None,
     val_paths: list[str | Path] | str | Path = None,
 ):
     data = {}
+    if path is not None:
+        data["path"] = str(path)
     if train_paths is not None:
         train_paths = (
             train_paths

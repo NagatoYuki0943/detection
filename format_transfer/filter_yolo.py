@@ -3,8 +3,10 @@
 from pathlib import Path
 from shutil import copy
 import traceback
+import yaml
 from tqdm import tqdm
-from functions import get_image_path, load_id2name_from_yaml, save_names_to_yaml
+from collections import Counter
+from functions import get_image_path, load_id2name_from_yaml
 
 
 def filter_yolo(
@@ -32,6 +34,8 @@ def filter_yolo(
         f"id_remap: {id_remap}"
     )
 
+    assert len(keep_ids) > 0
+
     txt_dirs = [txt_dirs] if isinstance(txt_dirs, (str, Path)) else txt_dirs
     txt_dirs = [Path(xml_dir) for xml_dir in txt_dirs]
     image_dirs = [image_dirs] if isinstance(image_dirs, (str, Path)) else image_dirs
@@ -55,16 +59,20 @@ def filter_yolo(
     new_txt_dir.mkdir(exist_ok=True, parents=True)
     new_image_dir = filtered_save_dir / "images"
     new_image_dir.mkdir(exist_ok=True, parents=True)
-    new_yaml_path = filtered_save_dir / "filtered.yaml"
+    new_yaml_path = filtered_save_dir / "data.yaml"
 
     if id_remap:
         new_ids = [id_remap.get(i, i) for i in keep_ids]
     else:
         new_ids = keep_ids
     new_names = sorted([id2name[i] for i in new_ids])
-    save_names_to_yaml(new_yaml_path, new_names)
+    data = {
+        "names": {i: name for i, name in enumerate(new_names)},
+    }
 
     i = 0
+    j = 0
+    new_ids = []
     txt_path: Path
     image_path: Path
     for txt_path, image_path in tqdm(
@@ -78,11 +86,13 @@ def filter_yolo(
                     _line = line.rstrip().split(" ")
                     if len(_line) != 5:
                         continue
+                    j += 1
                     _id = int(_line[0])
                     if _id not in keep_ids:
                         continue
                     # id 映射
                     new_id = id_remap.get(_id, _id) if id_remap else _id
+                    new_ids.append(new_id)
                     _line = [str(new_id)] + _line[1:]
                     lines.append(_line)
                     class_exists = True
@@ -104,7 +114,28 @@ def filter_yolo(
         except Exception:
             print(f"Error: {traceback.format_exc()}")
 
-    print(f"total {len(txt_paths)} txt files, filtered {i} txt files.")
+    print(
+        f"total {len(txt_paths)} txt files, total {j} objects, filtered {i} txt files, filtered {len(new_ids)} objects."
+    )
+    counters = dict(sorted(Counter(new_ids).items(), key=lambda x: x[0]))
+    print("object counts:")
+    for _id, count in counters.items():
+        print(f"    {_id}: {count}")
+
+    data.update(
+        {
+            "statistics": {
+                "total_files": len(txt_paths),
+                "total_objects": j,
+                "filtered_files": i,
+                "filtered_objects": len(new_ids),
+                "filtered_counts": counters,
+            }
+        }
+    )
+    with open(new_yaml_path, "w", encoding="utf-8") as f:
+        yaml.dump(data, f, allow_unicode=True, sort_keys=False)
+    print(f"save yaml config to {new_yaml_path}")
 
 
 if __name__ == "__main__":
@@ -116,8 +147,8 @@ if __name__ == "__main__":
     image_dirs = [
         "../VOC/images/test2007",
     ]
-    # 过滤后的 xmls 和 images 的存放路径, 里面会有 xmls 和 images 文件夹
-    filtered_save_dir = "../VOC/test2007--filtered"
+    # 过滤后的 xmls 和 images 的存放路径, 里面会有 xmls 和 images 文件夹, 用来存放全部过滤后的数据
+    filtered_save_dir = "../VOC/test2007--filtered--yolo-format"
     # 对应的 yaml 文件路径(不是必须, 当前主要目的是获取类别名称)
     yaml_path = "../VOC/VOC.yaml"
 
@@ -128,6 +159,6 @@ if __name__ == "__main__":
     keep_ids = ids[: len(ids) // 2]
 
     # id 的重映射
-    id_remap = {i: i for i in ids}
+    id_remap = {i: i for i in keep_ids}
 
     filter_yolo(txt_dirs, image_dirs, filtered_save_dir, keep_ids, id_remap)

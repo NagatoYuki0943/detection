@@ -122,6 +122,8 @@ def yolo2voc(
         f"new_image_dir: {new_image_dir}"
     )
 
+    assert len(id2name) > 0
+
     txt_dirs = [txt_dirs] if isinstance(txt_dirs, (str, Path)) else txt_dirs
     txt_dirs = [Path(xml_dir) for xml_dir in txt_dirs]
     image_dirs = [image_dirs] if isinstance(image_dirs, (str, Path)) else image_dirs
@@ -149,7 +151,9 @@ def yolo2voc(
 
     txt_path: Path
     image_path: Path
-    for txt_path, image_path in tqdm(zip(txt_paths, image_paths), desc="convert txt to xml"):
+    for txt_path, image_path in tqdm(
+        zip(txt_paths, image_paths), desc="convert txt to xml", total=len(txt_paths)
+    ):
         try:
             txt_stem = txt_path.stem
 
@@ -194,20 +198,20 @@ def yolo2voc(
 
 
 if __name__ == "__main__":
-    # 原本的 txt 文件夹
+    # 原本的 txt 文件夹, 支持多个目录
     txt_dirs = [
         "../VOC/labels/test2007",
     ]
-    # 原本图片文件夹
+    # 原本图片文件夹, 支持多个目录
     image_dirs = [
         "../VOC/images/test2007",
     ]
-    # 新的 xml 文件夹
+    # 新的 xml 文件夹, 会将全部的转换后的 xml 文件放到这个文件夹下
     new_xml_dir = "../VOC/xmls/test2007-1"
     # yaml 配置路径
     yaml_path = "../VOC/VOC.yaml"
     id2name = load_id2name_from_yaml(yaml_path)
-    # 新的图片文件夹, 如果为 None 则不复制图片
-    new_image_dir = None
+    # 新的图片文件夹, 会把全部图片放在这个文件夹下, 如果为 None 则不复制图片
+    new_image_dir = "../VOC/images/test2007-1"
 
     yolo2voc(txt_dirs, image_dirs, new_xml_dir, id2name, new_image_dir)

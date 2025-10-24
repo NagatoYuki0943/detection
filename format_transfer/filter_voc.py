@@ -4,8 +4,10 @@ from pathlib import Path
 from shutil import copy
 import traceback
 from xml.etree import ElementTree
+import yaml
 from tqdm import tqdm
-from functions import get_image_path, load_names_from_yaml, save_names_to_yaml
+from collections import Counter
+from functions import get_image_path, load_names_from_yaml
 
 
 def filter_voc(
@@ -33,6 +35,8 @@ def filter_voc(
         f"name_remap: {name_remap}"
     )
 
+    assert len(keep_names) > 0
+
     xml_dirs = [xml_dirs] if isinstance(xml_dirs, (str, Path)) else xml_dirs
     xml_dirs = [Path(xml_dir) for xml_dir in xml_dirs]
     image_dirs = [image_dirs] if isinstance(image_dirs, (str, Path)) else image_dirs
@@ -56,16 +60,20 @@ def filter_voc(
     new_xml_dir.mkdir(exist_ok=True, parents=True)
     new_image_dir = filtered_save_dir / "images"
     new_image_dir.mkdir(exist_ok=True, parents=True)
-    new_yaml_path = filtered_save_dir / "filtered.yaml"
+    new_yaml_path = filtered_save_dir / "data.yaml"
 
     if name_remap:
         new_names = [name_remap.get(i, i) for i in keep_names]
     else:
         new_names = keep_names
     new_names = sorted(new_names)
-    save_names_to_yaml(new_yaml_path, new_names)
+    data = {
+        "names": {i: name for i, name in enumerate(new_names)},
+    }
 
     i = 0
+    j = 0
+    new_names = []
     xml_path: Path
     image_path: Path
     for xml_path, image_path in tqdm(
@@ -80,12 +88,14 @@ def filter_voc(
             objs = tree.findall("object")
             new_objs = []
             for obj in objs:
+                j += 1
                 root.remove(obj)
                 name = obj.find("name").text
                 if name in keep_names:
                     class_exists = True
                     # name 映射
                     new_name = name_remap.get(name, name) if name_remap else name
+                    new_names.append(new_name)
                     obj.find("name").text = new_name
                     new_objs.append(obj)
 
@@ -105,7 +115,28 @@ def filter_voc(
         except Exception:
             print(f"Error: {traceback.format_exc()}")
 
-    print(f"total {len(xml_paths)} xml files, filtered {i} xml files.")
+    print(
+        f"total {len(xml_paths)} xml files, total {j} objects, filtered {i} xml files, filtered {len(new_names)} objects."
+    )
+    counters = dict(sorted(Counter(new_names).items(), key=lambda x: x[0]))
+    print("object counts:")
+    for name, count in counters.items():
+        print(f"    {name}: {count}")
+
+    data.update(
+        {
+            "statistics": {
+                "total_files": len(xml_paths),
+                "total_objects": j,
+                "filtered_files": i,
+                "filtered_objects": len(new_names),
+                "filtered_counts": counters,
+            }
+        }
+    )
+    with open(new_yaml_path, "w", encoding="utf-8") as f:
+        yaml.dump(data, f, allow_unicode=True, sort_keys=False)
+    print(f"save yaml config to {new_yaml_path}")
 
 
 if __name__ == "__main__":
@@ -117,8 +148,8 @@ if __name__ == "__main__":
     image_dirs = [
         "../VOC/images/test2007",
     ]
-    # 过滤后的 xmls 和 images 的存放路径, 里面会有 xmls 和 images 文件夹
-    filtered_save_dir = "../VOC/test2007--filtered"
+    # 过滤后的 xmls 和 images 的存放路径, 里面会有 xmls 和 images 文件夹, 用来存放全部过滤后的数据
+    filtered_save_dir = "../VOC/test2007--filtered--voc-format"
     # 对应的 yaml 文件路径(不是必须, 当前主要目的是获取类别名称)
     yaml_path = "../VOC/VOC.yaml"
 
@@ -128,6 +159,6 @@ if __name__ == "__main__":
     keep_names = names[: len(names) // 2]
 
     # 类别的重映射
-    name_remap = {i: i for i in names}
+    name_remap = {i: i for i in keep_names}
 
     filter_voc(xml_dirs, image_dirs, filtered_save_dir, keep_names, name_remap)

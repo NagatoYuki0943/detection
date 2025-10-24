@@ -5,11 +5,10 @@ from pathlib import Path
 from shutil import copy
 import traceback
 from tqdm import tqdm
+import yaml
 from collections import Counter
 from functions import (
     get_image_path,
-    load_id2name_from_yaml,
-    save_id2names_and_path_to_yaml,
 )
 
 
@@ -19,7 +18,6 @@ def sample_yolo(
     sample_dir: str | Path = "output",
     val_percent: float = 0.1,
     object_min_num: int = 10,
-    id2name: dict[int, str] = None,
     seed: int | None = None,
 ) -> None:
     """Filter YOLO dataset by keep_ids
@@ -30,7 +28,6 @@ def sample_yolo(
         sample_dir (str | Path, optional): 采样结果保存目录. Defaults to "output".
         val_percent (float, optional): 验证集占比. Defaults to 0.1.
         object_min_num (int, optional): 最少的物体数量. Defaults to 10.
-        id2name (dict[int, str], optional): 类别名称映射表. Defaults to None.
         seed (int | None, optional): 随机种子. Defaults to None.
     """
     print(
@@ -40,7 +37,6 @@ def sample_yolo(
         f"sample_dir: {sample_dir}\n"
         f"val_percent: {val_percent}\n"
         f"object_min_num: {object_min_num}\n"
-        f"id2name: {id2name}\n"
         f"seed: {seed}"
     )
 
@@ -84,13 +80,6 @@ def sample_yolo(
     print(f"Save train images to {train_image_dir}")
     print(f"Save train txts to {train_label_dir}")
 
-    if id2name is not None:
-        new_yaml_path = sample_dir / "data.yaml"
-        save_id2names_and_path_to_yaml(
-            new_yaml_path, id2name, train_image_dir, val_image_dir
-        )
-        print(f"Save id2name and path to {new_yaml_path}")
-
     total_num = len(txt_paths)
     val_num = round(total_num * val_percent)
 
@@ -108,6 +97,7 @@ def sample_yolo(
         ]
 
         # ------------------ val ------------------ #
+        j = 0
         val_ids = []
         for txt_path in tqdm(val_txt_paths, desc="check val txt files"):
             try:
@@ -116,6 +106,7 @@ def sample_yolo(
                         _line = line.rstrip().split(" ")
                         if len(_line) != 5:
                             continue
+                        j += 1
                         val_ids.append(int(_line[0]))
 
             except Exception:
@@ -129,6 +120,7 @@ def sample_yolo(
         # ------------------ val ------------------ #
 
         # ------------------ train ------------------ #
+        k = 0
         train_ids = []
         for txt_path in tqdm(train_txt_paths, desc="check val txt files"):
             try:
@@ -137,6 +129,7 @@ def sample_yolo(
                         _line = line.rstrip().split(" ")
                         if len(_line) != 5:
                             continue
+                        k += 1
                         train_ids.append(int(_line[0]))
 
             except Exception:
@@ -150,13 +143,45 @@ def sample_yolo(
         # ------------------ train ------------------ #
 
         min_num = min(min(val_counters.values()), min(train_counters.values()))
-        if seed is not None or min_num >= object_min_num or i > 100:
+        unqiue_val_ids = set(val_ids)
+        unqiue_train_ids = set(train_ids)
+        if (
+            seed is not None
+            or i > 100
+            or (
+                len(unqiue_val_ids ^ unqiue_train_ids) == 0
+                and min_num >= object_min_num
+            )
+        ):
             break
+
+        print()
+
+    data = {
+        "path": str(sample_dir.name),
+        "train": ["train/images"],
+        "val": ["val/images"],
+        "names": {i: name for i, name in enumerate(sorted(unqiue_val_ids))},
+        "statistics": {
+            "train_files": len(train_txt_paths),
+            "train_objects": k,
+            "train_counts": train_counters,
+            "val_files": len(val_txt_paths),
+            "val_objects": j,
+            "val_counts": val_counters,
+        },
+    }
+    new_yaml_path = sample_dir / "data.yaml"
+    with open(new_yaml_path, mode="w", encoding="utf-8") as f:
+        yaml.dump(data, f, allow_unicode=True, sort_keys=False)
+    print(f"save yaml config to {new_yaml_path}")
 
     txt_path: Path
     image_path: Path
     for txt_path, image_path in tqdm(
-        zip(val_txt_paths, val_image_paths), desc="move val txt and image files", total=len(val_txt_paths)
+        zip(val_txt_paths, val_image_paths),
+        desc="move val txt and image files",
+        total=len(val_txt_paths),
     ):
         try:
             new_image_path = val_image_dir / image_path.name
@@ -169,7 +194,9 @@ def sample_yolo(
             print(f"Error: {traceback.format_exc()}")
 
     for txt_path, image_path in tqdm(
-        zip(train_txt_paths, train_image_paths), desc="move train txt and image files", total=len(train_txt_paths)
+        zip(train_txt_paths, train_image_paths),
+        desc="move train txt and image files",
+        total=len(train_txt_paths),
     ):
         try:
             new_image_path = train_image_dir / image_path.name
@@ -191,11 +218,8 @@ if __name__ == "__main__":
     image_dirs = [
         "../VOC/images/test2007",
     ]
-    # 采样后的路径, 包含 train 和 val 两个文件夹, 以及对应的 txts 和 images 文件夹
+    # 采样后的路径, 包含 train 和 val 两个文件夹, 以及对应的 txts 和 images 文件夹, 用来存放全部采样后的数据
     sample_dir = "../VOC/test2007--sample--yolo"
-    # yaml 配置文件路径
-    yaml_path = "../VOC/VOC.yaml"
-    id2name = load_id2name_from_yaml(yaml_path)
     # 验证集占比
     val_percent = 0.1
     # 划分数据集时每个类别的最小数量, 如果数据集太少不一定能保证, 需要调整这个值
@@ -203,6 +227,4 @@ if __name__ == "__main__":
     # 随机种子, 保证可以复现, None 代表不设置
     seed = None
 
-    sample_yolo(
-        txt_dirs, image_dirs, sample_dir, val_percent, object_min_num, id2name, seed
-    )
+    sample_yolo(txt_dirs, image_dirs, sample_dir, val_percent, object_min_num, seed)

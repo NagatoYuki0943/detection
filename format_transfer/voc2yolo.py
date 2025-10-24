@@ -37,6 +37,8 @@ def voc2yolo(
         f"name2id: {name2id}"
     )
 
+    assert len(name2id) > 0
+
     xml_dirs = [xml_dirs] if isinstance(xml_dirs, (str, Path)) else xml_dirs
     xml_dirs = [Path(xml_dir) for xml_dir in xml_dirs]
     image_dirs = [image_dirs] if isinstance(image_dirs, (str, Path)) else image_dirs
@@ -64,7 +66,9 @@ def voc2yolo(
 
     xml_path: Path
     image_path: Path
-    for xml_path, image_path in tqdm(zip(xml_paths, image_paths), desc="convert xml to txt", total=len(xml_paths)):
+    for xml_path, image_path in tqdm(
+        zip(xml_paths, image_paths), desc="convert xml to txt", total=len(xml_paths)
+    ):
         try:
             xml_stem = xml_path.stem
             txt_path = new_txt_dir / f"{xml_stem}.txt"
@@ -130,20 +134,20 @@ def voc2yolo(
 
 
 if __name__ == "__main__":
-    # 原本的 xml 文件夹
+    # 原本的 xml 文件夹, 支持多个目录
     xml_dirs = [
         "../VOC/xmls/test2007",
     ]
-    # 原本图片文件夹
+    # 原本图片文件夹, 支持多个目录
     image_dirs = [
         "../VOC/images/test2007",
     ]
-    # 新的 txt 文件夹
-    new_txt_dir = "../VOC/labels/test2007"
+    # 新的 txt 文件夹, 会将全部的转换后的 txt 文件放到这个文件夹下
+    new_txt_dir = "../VOC/labels/test2007-1"
     # yaml 配置路径
     yaml_path = "../VOC/VOC.yaml"
     name2id = load_name2id_from_yaml(yaml_path)
-    # 新的图片文件夹, 如果为 None 则不复制图片
+    # 新的图片文件夹, 会把全部图片放在这个文件夹下, 如果为 None 则不复制图片
     new_image_dir = None
 
     voc2yolo(xml_dirs, image_dirs, new_txt_dir, name2id, new_image_dir)
