@@ -728,9 +728,9 @@ settings.update(
 
 yaml_path = Path("ultralytics/cfg/models/11/yolo11n.yaml").resolve()
 model_path = Path("weights/yolo11n.pt").resolve()
-data_path = Path("datasets/coco/coco.yaml").resolve()
+data_path = Path("datasets/VOC/VOC.yaml").resolve()
 project = "myproject"
-name = "yolo11n/train"
+name = "VOC/yolo11n/train"
 
 print(f"{yaml_path} is exists: {yaml_path.exists()}")
 print(f"{model_path} is exists: {model_path.exists()}")
@@ -784,9 +784,27 @@ results = model.train(
     val=True,
     plots=False,
     compile=False,
+    # below are image enhance hyperparameters
+    hsv_h=0.015,
+    hsv_s=0.7,
+    hsv_v=0.4,
+    degrees=0.0,
+    translate=0.1,
+    scale=0.5,
+    shear=0.0,
+    perspective=0.0,
+    flipud=0.0,
+    fliplr=0.5,
+    bgr=0.0,
+    mosaic=1.0,
+    mixup=0.0,
+    cutmix=0.0,
+    copy_paste=0.0,
+    copy_paste_mode="flip",
+    auto_augment="randaugment",
+    erasing=0.4,
+    cfg=None,
 )
-
-print(results)
 ```
 
 cmd
