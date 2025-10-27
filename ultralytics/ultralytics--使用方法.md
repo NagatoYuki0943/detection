@@ -2128,10 +2128,13 @@ model = YOLO("weights/yolo11n.pt")  # load an official model
 # Export the model
 model.export(
     format="onnx",
-    half=True,
-    device="cuda:0",
-    simplify=True,
+    half=False,
     dynamic=True,
+    simplify=True,
+    opset=None,
+    nms=True,
+    # batch=16,
+    device="cuda:0",
 )
 ```
 
