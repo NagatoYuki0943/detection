@@ -2004,12 +2004,6 @@ yolo detect predict imgsz=640 save=True save_txt=True save_conf=True save_crop=T
 ```sh
 yolo detect predict imgsz=640 save=True save_txt=True save_conf=True save_crop=True conf=0.25 iou=0.7 data=ultralytics/cfg/datasets/coco8.yaml model=weights/yolo11n.onnx source=ultralytics/assets/bus.jpg device=0 project=myproject name=yolo11n/predict
 yolo detect predict imgsz=640 save=True save_txt=True save_conf=True save_crop=True conf=0.25 iou=0.7 data=ultralytics/cfg/datasets/coco8.yaml model=weights/yolo11n.onnx source=../datasets/coco8/images/train2017 device=0 project=myproject name=yolo11n/predict
-
-yolo detect predict imgsz=640 save=True save_txt=True save_conf=True save_crop=True conf=0.25 iou=0.7 data=ultralytics/cfg/datasets/coco8.yaml model=weights/yolo11n.fp16.onnx half=True source=ultralytics/assets/bus.jpg device=0 project=myproject name=yolo11n/predict           # fp16模型需要 half=True
-yolo detect predict imgsz=640 save=True save_txt=True save_conf=True save_crop=True conf=0.25 iou=0.7 data=ultralytics/cfg/datasets/coco8.yaml model=weights/yolo11n.fp16.onnx half=True source=../datasets/coco8/images/train2017 device=0 project=myproject name=yolo11n/predict
-
-yolo detect predict imgsz=640 save=True save_txt=True save_conf=True save_crop=True conf=0.25 iou=0.7 data=ultralytics/cfg/datasets/coco8.yaml model=weights/yolo11n.cpu.dynamic.onnx source=ultralytics/assets/bus.jpg device=0 project=myproject name=yolo11n/predict              # 使用cpu导出的dynamic模型可以用gpu推理
-yolo detect predict imgsz=640 save=True save_txt=True save_conf=True save_crop=True conf=0.25 iou=0.7 data=ultralytics/cfg/datasets/coco8.yaml model=weights/yolo11n.cpu.dynamic.onnx source=../datasets/coco8/images/train2017 device=0 project=myproject name=yolo11n/predict
 ```
 
 ### openvino
@@ -2025,14 +2019,8 @@ yolo detect predict imgsz=640 save=True save_txt=True save_conf=True save_crop=T
 ### tensorrt
 
 ```sh
-yolo detect predict imgsz=640 save=True save_txt=True save_conf=True save_crop=True conf=0.25 iou=0.7 data=ultralytics/cfg/datasets/coco8.yaml model=weights/yolo11n.engine half=True source=ultralytics/assets/bus.jpg device=0 project=myproject name=yolo11n/predict                          # fp32模型也能用 --half 推理
+yolo detect predict imgsz=640 save=True save_txt=True save_conf=True save_crop=True conf=0.25 iou=0.7 data=ultralytics/cfg/datasets/coco8.yaml model=weights/yolo11n.engine half=True source=ultralytics/assets/bus.jpg device=0 project=myproject name=yolo11n/predict
 yolo detect predict imgsz=640 save=True save_txt=True save_conf=True save_crop=True conf=0.25 iou=0.7 data=ultralytics/cfg/datasets/coco8.yaml model=weights/yolo11n.engine half=True source=../datasets/coco8/images/train2017 device=0 project=myproject name=yolo11n/predict
-
-yolo detect predict imgsz=640 save=True save_txt=True save_conf=True save_crop=True conf=0.25 iou=0.7 data=ultralytics/cfg/datasets/coco8.yaml model=weights/yolo11n.fp16.engine half=True source=ultralytics/assets/bus.jpg device=0 project=myproject name=yolo11n/predict
-yolo detect predict imgsz=640 save=True save_txt=True save_conf=True save_crop=True conf=0.25 iou=0.7 data=ultralytics/cfg/datasets/coco8.yaml model=weights/yolo11n.fp16.engine half=True source=../datasets/coco8/images/train2017 device=0 project=myproject name=yolo11n/predict
-
-yolo detect predict imgsz=640 save=True save_txt=True save_conf=True save_crop=True conf=0.25 iou=0.7 data=ultralytics/cfg/datasets/coco8.yaml model=weights/yolo11n.fp32.dynamic.engine half=True source=ultralytics/assets/bus.jpg device=0 project=myproject name=yolo11n/predict             # fp32模型也能用 --half 推理
-yolo detect predict imgsz=640 save=True save_txt=True save_conf=True save_crop=True conf=0.25 iou=0.7 data=ultralytics/cfg/datasets/coco8.yaml model=weights/yolo11n.fp32.dynamic.engine half=True source=../datasets/coco8/images/train2017 device=0 project=myproject name=yolo11n/predict
 ```
 
 # [导出](https://docs.ultralytics.com/zh/modes/export/)
@@ -2142,24 +2130,6 @@ cmd
 
 ```sh
 yolo detect export imgsz=640 model=weights/yolo11n.pt format=onnx simplify=True device=0 project=myproject
-
-yolo detect export imgsz=640 model=weights/yolo11n.pt format=onnx simplify=True device=0 half=True project=myproject                # half=True only compatible with GPU export, i.e. use device=0
-
-yolo detect export imgsz=640 model=weights/yolo11n.pt format=onnx simplify=True device=cpu dynamic=True project=myproject
-
-yolo detect export imgsz=640 model=weights/yolo11n.pt format=onnx simplify=True device=cpu half=True dynamic=True project=myproject  # 导出失败 half=True not compatible with dynamic=True, i.e. use only one.
-```
-
-### opencv使用的onnx
-
-> https://github.com/ultralytics/ultralytics/tree/main/examples/YOLO11-OpenCV-ONNX-Python
-
-```sh
-yolo detect export imgsz=640 model=weights/yolo11n.pt format=onnx simplify=True device=0 opset=12 project=myproject             # opset必须为12
-
-yolo detect export imgsz=640 model=weights/yolo11n.pt format=onnx simplify=True device=0 half=True opset=12 project=myproject   # opset必须为12
-
-# opencv不支持dynamic
 ```
 
 ### openvino
@@ -2186,16 +2156,12 @@ ovc "onnx_path" --output_model "output_path" --compress_to_fp16
 
 ```sh
 yolo detect export imgsz=640 model=weights/yolo11n.pt format=engine simplify=True device=0 project=myproject # 可以用simplify的onnx
-
-yolo detect export imgsz=640 model=weights/yolo11n.pt format=engine simplify=True device=0 half=True project=myproject
 ```
 
 ### ncnn
 
 ```sh
 yolo detect export imgsz=640 model=weights/yolo11n.pt format=ncnn simplify=True device=0 project=myproject # 可以用simplify的onnx
-
-yolo detect export imgsz=640 model=weights/yolo11n.pt format=ncnn simplify=True device=0 half=True project=myproject
 ```
 
 # [跟踪](https://docs.ultralytics.com/zh/modes/track/)
