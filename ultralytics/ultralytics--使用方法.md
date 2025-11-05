@@ -738,9 +738,9 @@ print(f"{data_path} is exists: {data_path.exists()}")
 
 
 # Load a model
-# model = YOLO(yaml_path)  # build a new model from YAML
-model = YOLO(model_path)  # load a pretrained model (recommended for training)
-# model = YOLO(yaml_path).load(model_path)  # build from YAML and transfer weights
+# model = YOLO(yaml_path, task="detect")  # build a new model from YAML
+model = YOLO(model_path, task="detect")  # load a pretrained model (recommended for training)
+# model = YOLO(yaml_path, task="detect").load(model_path)  # build from YAML and transfer weights
 
 
 # Train the model
@@ -1048,8 +1048,6 @@ yolo detect val model=path/to/best.pt # val custom model
 
 ## Example
 
-### torch
-
 py
 
 ```python
@@ -1067,17 +1065,17 @@ print(f"{model_path} is exists: {model_path.exists()}")
 print(f"{data_path} is exists: {data_path.exists()}")
 
 
-model = YOLO(model_path)
+model = YOLO(model_path, task="detect")
 
 metrics: DetMetrics = model.val(
     data=data_path,
     imgsz=640,
-    batch=16,
+    batch=1,
     save_json=False,
     conf=0.001,
     iou=0.7,
     max_det=300,
-    half=True,
+    half=False,
     device=0,
     plots=True,
     classes=None,  # list[int] | None, 指定要训练的类 ID 列表。可用于在评估期间过滤并仅关注某些类。
@@ -1117,30 +1115,6 @@ cmd
 
 ```sh
 yolo detect val imgsz=640 save_json=True save_txt=True save_conf=True conf=0.25 iou=0.7 data=ultralytics/cfg/datasets/coco8.yaml model=weights/yolo11n.pt device=0 project=myproject name=yolo11n/val
-```
-
-### onnx
-
-> 注意:
->
-> `onnxruntime` 和 `onnxruntime-gpu` 不要同时安装，否则使用 `gpu` 推理时速度会很慢，如果同时安装了2个包，要全部卸载，再安装 `onnxruntime-gpu` 才能使用gpu推理，否则gpu速度会很慢
-
-```sh
-yolo detect val imgsz=640 save_json=True save_txt=True save_conf=True conf=0.25 iou=0.7 data=ultralytics/cfg/datasets/coco8.yaml model=weights/yolo11n.onnx device=0 project=myproject name=yolo11n/val
-```
-
-### openvino
-
-> 注意：openvino没法使用cuda，但是使用 --device 0 会提高推理速度
-
-```sh
-yolo detect val imgsz=640 save_json=True save_txt=True save_conf=True conf=0.25 iou=0.7 data=ultralytics/cfg/datasets/coco8.yaml model=weights/yolo11n_openvnio_model device=cpu project=myproject name=yolo11n/val
-```
-
-### tensorrt
-
-```sh
-yolo detect val imgsz=640 save_json=True save_txt=True save_conf=True conf=0.25 iou=0.7 data=ultralytics/cfg/datasets/coco8.yaml model=weights/yolo11n.onnx device=0 half=True project=myproject name=yolo11n/val
 ```
 
 # [预测](https://docs.ultralytics.com/zh/modes/predict/)
@@ -1925,8 +1899,6 @@ cv2.destroyAllWindows()
 
 ## Example
 
-### torch
-
 py
 
 ```python
@@ -1945,7 +1917,7 @@ print(f"{model_path} is exists: {model_path.exists()}")
 print(f"{source} is exists: {source.exists()}")
 
 
-model = YOLO(model_path)
+model = YOLO(model_path, task="detect")
 
 results = model(
     source,
@@ -1953,9 +1925,9 @@ results = model(
     iou=0.7,
     imgsz=640,
     rect=True,
-    half=True,
+    half=False,
     device=0,
-    batch=16,
+    batch=1,
     max_det=300,
     augment=False,
     agnostic_nms=False,
@@ -1985,6 +1957,7 @@ for result in results:
     obb = result.obb  # Oriented boxes object for OBB outputs
     # result.show()  # display to screen
     # result.save(filename="result.jpg")  # save to disk
+
 ```
 
 cmd
@@ -1993,34 +1966,6 @@ cmd
 yolo detect predict imgsz=640 save=True save_txt=True save_conf=True save_crop=True conf=0.25 iou=0.7 data=ultralytics/cfg/datasets/coco8.yaml model=weights/yolo11n.pt source=ultralytics/assets/bus.jpg device=0 project=myproject name=yolo11n/predict
 
 yolo detect predict imgsz=640 save=True save_txt=True save_conf=True save_crop=True conf=0.25 iou=0.7 data=ultralytics/cfg/datasets/coco8.yaml model=weights/yolo11n.pt source=../datasets/coco8/images/train2017 device=0 project=myproject name=yolo11n/predict
-```
-
-### onnx
-
-> 注意:
->
-> `onnxruntime` 和 `onnxruntime-gpu` 不要同时安装，否则使用 `gpu` 推理时速度会很慢，如果同时安装了2个包，要全部卸载，再安装 `onnxruntime-gpu` 才能使用gpu推理，否则gpu速度会很慢
-
-```sh
-yolo detect predict imgsz=640 save=True save_txt=True save_conf=True save_crop=True conf=0.25 iou=0.7 data=ultralytics/cfg/datasets/coco8.yaml model=weights/yolo11n.onnx source=ultralytics/assets/bus.jpg device=0 project=myproject name=yolo11n/predict
-yolo detect predict imgsz=640 save=True save_txt=True save_conf=True save_crop=True conf=0.25 iou=0.7 data=ultralytics/cfg/datasets/coco8.yaml model=weights/yolo11n.onnx source=../datasets/coco8/images/train2017 device=0 project=myproject name=yolo11n/predict
-```
-
-### openvino
-
-> 注意：openvino没法使用cuda，但是使用 `device=0` 会提高推理速度
-
-```sh
-yolo detect predict imgsz=640 save=True save_txt=True save_conf=True save_crop=True conf=0.25 iou=0.7 data=ultralytics/cfg/datasets/coco8.yaml model=weights/yolo11n_openvino_model source=ultralytics/assets/bus.jpg device=cpu project=myproject name=yolo11n/predict
-
-yolo detect predict imgsz=640 save=True save_txt=True save_conf=True save_crop=True conf=0.25 iou=0.7 data=ultralytics/cfg/datasets/coco8.yaml model=weights/yolo11n_openvino_model source=../datasets/coco8/images/train2017 device=cpu project=myproject name=yolo11n/predict
-```
-
-### tensorrt
-
-```sh
-yolo detect predict imgsz=640 save=True save_txt=True save_conf=True save_crop=True conf=0.25 iou=0.7 data=ultralytics/cfg/datasets/coco8.yaml model=weights/yolo11n.engine half=True source=ultralytics/assets/bus.jpg device=0 project=myproject name=yolo11n/predict
-yolo detect predict imgsz=640 save=True save_txt=True save_conf=True save_crop=True conf=0.25 iou=0.7 data=ultralytics/cfg/datasets/coco8.yaml model=weights/yolo11n.engine half=True source=../datasets/coco8/images/train2017 device=0 project=myproject name=yolo11n/predict
 ```
 
 # [导出](https://docs.ultralytics.com/zh/modes/export/)
@@ -2097,8 +2042,6 @@ yolo export model=path/to/best.pt format=onnx # export custom trained model
 
 ## Example
 
-### onnx
-
 > 注意:
 >
 > `onnxruntime` 和 `onnxruntime-gpu` 不要同时安装，否则使用 `gpu` 推理时速度会很慢，如果同时安装了2个包，要全部卸载，再安装`onnxruntime-gpu` 才能使用gpu推理，否则gpu速度会很慢
@@ -2110,11 +2053,16 @@ from pathlib import Path
 from ultralytics import YOLO
 
 
-# Load a model
-model = YOLO("weights/yolo11n.pt")  # load an official model
-# model = YOLO("path/to/best.pt")  # load a custom trained model
-
+model_path = Path("weights/yolo11n.pt").resolve()
+# model_path = Path("path/to/best.pt").resolve()
 data_path = Path("datasets/coco/coco.yaml").resolve()
+
+print(f"{model_path} is exists: {model_path.exists()}")
+print(f"{data_path} is exists: {data_path.exists()}")
+
+# Load a model
+model = YOLO(model_path, task="detect")
+
 
 export_type = "torchscript"
 
@@ -2124,10 +2072,10 @@ if export_type == "torchscript":
     model.export(
         format="torchscript",
         imgsz=640,
-        half=True,
-        dynamic=True,
+        half=False,
+        dynamic=False,
         optimize=True,
-        nms=True,
+        nms=False,
         batch=1,
         device="cpu",
     )
@@ -2135,11 +2083,11 @@ elif export_type == "onnx":
     model.export(
         format="onnx",
         imgsz=640,
-        half=True,
-        dynamic=True,
+        half=False,
+        dynamic=False,
         simplify=True,
         opset=None,
-        nms=True,
+        nms=False,
         batch=1,
         device="cpu",
     )
@@ -2147,10 +2095,10 @@ elif export_type == "openvino":
     model.export(
         format="openvino",
         imgsz=640,
-        half=True,
-        dynamic=True,
+        half=False,
+        dynamic=False,
         int8=False,
-        nms=True,
+        nms=False,
         batch=1,
         data=data_path,
         fraction=1.0,
@@ -2160,17 +2108,18 @@ elif export_type == "tensorrt":
     model.export(
         format="tensorrt",
         imgsz=640,
-        half=True,
-        dynamic=True,
+        half=False,
+        dynamic=False,
         simplify=True,
         workspace=None,
         int8=False,
-        nms=True,
+        nms=False,
         batch=1,
         data=data_path,
         fraction=1.0,
         device=0,
     )
+
 ```
 
 cmd
