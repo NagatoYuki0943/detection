@@ -2106,6 +2106,7 @@ yolo export model=path/to/best.pt format=onnx # export custom trained model
 py
 
 ```py
+from pathlib import Path
 from ultralytics import YOLO
 
 
@@ -2113,55 +2114,69 @@ from ultralytics import YOLO
 model = YOLO("weights/yolo11n.pt")  # load an official model
 # model = YOLO("path/to/best.pt")  # load a custom trained model
 
+data_path = Path("datasets/coco/coco.yaml").resolve()
+
+export_type = "torchscript"
+
+
 # Export the model
-model.export(
-    format="onnx",
-    half=False,
-    dynamic=True,
-    simplify=True,
-    opset=None,
-    nms=True,
-    # batch=16,
-    device=0,
-)
+if export_type == "torchscript":
+    model.export(
+        format="torchscript",
+        imgsz=640,
+        half=True,
+        dynamic=True,
+        optimize=True,
+        nms=True,
+        batch=1,
+        device="cpu",
+    )
+elif export_type == "onnx":
+    model.export(
+        format="onnx",
+        imgsz=640,
+        half=True,
+        dynamic=True,
+        simplify=True,
+        opset=None,
+        nms=True,
+        batch=1,
+        device="cpu",
+    )
+elif export_type == "openvino":
+    model.export(
+        format="openvino",
+        imgsz=640,
+        half=True,
+        dynamic=True,
+        int8=False,
+        nms=True,
+        batch=1,
+        data=data_path,
+        fraction=1.0,
+        device="cpu",
+    )
+elif export_type == "tensorrt":
+    model.export(
+        format="tensorrt",
+        imgsz=640,
+        half=True,
+        dynamic=True,
+        simplify=True,
+        workspace=None,
+        int8=False,
+        nms=True,
+        batch=1,
+        data=data_path,
+        fraction=1.0,
+        device=0,
+    )
 ```
 
 cmd
 
 ```sh
 yolo detect export imgsz=640 model=weights/yolo11n.pt format=onnx simplify=True device=0 project=myproject
-```
-
-### openvino
-
-```sh
-yolo detect export imgsz=640 model=weights/yolo11n.pt format=openvino device=cpu project=myproject
-
-yolo detect export imgsz=640 model=weights/yolo11n.pt format=openvino device=cpu half=True project=myproject
-
-yolo task =detect export imgsz=640 model=weights/yolo11n.pt format=openvino device=cpu int8=True data=ultralytics/cfg/datasets/coco8.yaml project=myproject # INT8 export requires a data argument for calibration
-```
-
-#### 通过openvino的`ovc`命令将onnx转换为openvino格式(支持**fp16**)
-
-> https://docs.openvino.ai/archive/2023.2/openvino_docs_OV_Converter_UG_prepare_model_convert_model_MO_OVC_transition.html
-
-```sh
-ovc "onnx_path" --output_model "output_path" --compress_to_fp16
-
-ovc "onnx_path" --output_model "output_path" --compress_to_fp16
-```
-
-### tensorrt
-
-```sh
-yolo detect export imgsz=640 model=weights/yolo11n.pt format=engine simplify=True device=0 project=myproject # 可以用simplify的onnx
-```
-
-### ncnn
-
-```sh
-yolo detect export imgsz=640 model=weights/yolo11n.pt format=ncnn simplify=True device=0 project=myproject # 可以用simplify的onnx
 ```
 
 # [跟踪](https://docs.ultralytics.com/zh/modes/track/)
