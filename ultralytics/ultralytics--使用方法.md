@@ -1054,6 +1054,7 @@ py
 from pathlib import Path
 from ultralytics import YOLO
 from ultralytics.utils.metrics import DetMetrics
+import pandas as pd
 
 
 model_path = Path("weights/yolo11n.pt").resolve()
@@ -1107,8 +1108,10 @@ print(f"map75: {metrics.box.map75}\n")
 # a list contains map50-95 of each category
 print(f"maps: {metrics.box.maps}\n")
 
-# confusion_matrix
-print(f"confusion_matrix:\n{metrics.confusion_matrix.to_df()}\n")
+# confusion_matrix: polars.DataFrame
+confusion_matrix_df: pd.DataFrame = metrics.confusion_matrix.to_df().to_pandas()
+confusion_matrix_df.to_csv("confusion_matrix.csv")
+print(f"confusion_matrix:\n{confusion_matrix_df.head()}\n")
 ```
 
 cmd
