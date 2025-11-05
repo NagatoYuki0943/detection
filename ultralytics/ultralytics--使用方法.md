@@ -728,9 +728,9 @@ settings.update(
 
 yaml_path = Path("ultralytics/cfg/models/11/yolo11n.yaml").resolve()
 model_path = Path("weights/yolo11n.pt").resolve()
-data_path = Path("datasets/VOC/VOC.yaml").resolve()
+data_path = Path("datasets/coco/coco.yaml").resolve()
 project = "myproject"
-name = "VOC/yolo11n/train"
+name = "coco/yolo11n/train"
 
 print(f"{yaml_path} is exists: {yaml_path.exists()}")
 print(f"{model_path} is exists: {model_path.exists()}")
@@ -1061,7 +1061,7 @@ from ultralytics.utils.metrics import DetMetrics
 model_path = Path("weights/yolo11n.pt").resolve()
 data_path = Path("datasets/coco/coco.yaml").resolve()
 project = "myproject"
-name = "yolo11n/val"
+name = "coco/yolo11n/val"
 
 print(f"{model_path} is exists: {model_path.exists()}")
 print(f"{data_path} is exists: {data_path.exists()}")
@@ -1939,7 +1939,7 @@ model_path = Path("weights/yolo11n.pt").resolve()
 source = Path("datasets/coco/images/val2017/000000000139.jpg").resolve()
 source = Path("datasets/coco/images/val2017/").resolve()
 project = "myproject"
-name = "yolo11n/predict"
+name = "coco/yolo11n/predict"
 
 print(f"{model_path} is exists: {model_path.exists()}")
 print(f"{source} is exists: {source.exists()}")
@@ -2122,7 +2122,7 @@ model.export(
     opset=None,
     nms=True,
     # batch=16,
-    device="cuda:0",
+    device=0,
 )
 ```
 
