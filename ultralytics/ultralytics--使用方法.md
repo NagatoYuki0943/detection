@@ -139,8 +139,6 @@ Ultralytics Solutions 配置设置提供了灵活性，可以自定义模型以�
 
 先要把数据集放入dataset中，修改data/目录下的yaml，调整为自己的数据集，需要调整路径，分类数，标签名
 
-yolo数据集格式(yolov5/11的coco8和霹雳吧啦Wz的yolo3为例)
-
 txt内容，每一行都是 `3 0.933536 0.486124 0.030408 0.154487`，`class center_x center_y width height`
 
 label 中心横坐标与图像宽度比值 中心纵坐标与图像高度比值 bbox宽度与图像宽度比值 bbox高度与图像宽高比值
