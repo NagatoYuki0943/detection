@@ -1,5 +1,6 @@
 """Filter yolo dataset"""
 
+from typing import Literal
 from pathlib import Path
 from shutil import copy
 import traceback
@@ -15,6 +16,9 @@ def filter_yolo(
     filtered_save_dir: str | Path,
     keep_ids: list[int],
     id_remap: dict[int, int] | None = None,
+    save_box_height_percent: float = 0.0,
+    save_box_width_percent: float = 0.0,
+    save_box_percent_type: Literal["greater_eq", "less_eq"] = "greater_eq",
 ) -> None:
     """Filter YOLO dataset by keep_ids
 
@@ -24,17 +28,26 @@ def filter_yolo(
         filtered_save_dir (str | Path): 过滤后的 YOLO 格式的 txt 文件和图片存放目录, 里面会有 txts 和 images 文件夹
         keep_ids (list[int]): 需要保留的类别 id list
         id_remap (dict[int, int] | None): 类别 id 映射表, 若为 None, 则不进行映射
+        save_box_height_percent (float): box 高度占图片高度的比例, 过滤掉高度小于或者大于该比例的目标框
+        save_box_width_percent (float): box 宽度占图片宽度的比例, 过滤掉宽度小于或者大于该比例的目标框
+        save_box_percent_type (Literal["greater_eq", "less_eq"]): 过滤掉 box 高度或者宽度大于等于或者小于等于该比例的目标框
     """
+    assert len(keep_ids) > 0
+    assert 0 <= save_box_height_percent <= 1
+    assert 0 <= save_box_width_percent <= 1
+    assert save_box_percent_type in ["greater_eq", "less_eq"]
+
     print(
         "Filter YOLO dataset by keep_ids...\n"
         f"txt_dirs: {txt_dirs}\n"
         f"image_dirs: {image_dirs}\n"
         f"filtered_save_dir: {filtered_save_dir}\n"
         f"keep_ids: {keep_ids}\n"
-        f"id_remap: {id_remap}"
+        f"id_remap: {id_remap}\n"
+        f"save_box_height_percent: {save_box_height_percent}\n"
+        f"save_box_width_percent: {save_box_width_percent}"
+        f"save_box_percent_type: {save_box_percent_type}"
     )
-
-    assert len(keep_ids) > 0
 
     txt_dirs = [txt_dirs] if isinstance(txt_dirs, (str, Path)) else txt_dirs
     txt_dirs = [Path(xml_dir) for xml_dir in txt_dirs]
@@ -79,7 +92,7 @@ def filter_yolo(
         zip(txt_paths, image_paths), desc="filter txt files", total=len(txt_paths)
     ):
         try:
-            class_exists = False
+            has_obj = False
             lines = []
             with open(txt_path, "r", encoding="utf-8") as f:
                 for line in f.readlines():
@@ -88,16 +101,29 @@ def filter_yolo(
                         continue
                     j += 1
                     _id = int(_line[0])
+
+                    # 类别 id 过滤
                     if _id not in keep_ids:
                         continue
+
+                    # 按照 box 框大小忽略
+                    # center_x = float(_line[1])
+                    # center_y = float(_line[2])
+                    width = float(_line[3])
+                    height = float(_line[4])
+                    if save_box_percent_type == "greater_eq" and (width < save_box_width_percent or height < save_box_height_percent):
+                        continue
+                    if save_box_percent_type == "less_eq" and (width > save_box_width_percent or height > save_box_height_percent):
+                        continue
+
                     # id 映射
                     new_id = id_remap.get(_id, _id) if id_remap else _id
                     new_ids.append(new_id)
                     _line = [str(new_id)] + _line[1:]
                     lines.append(_line)
-                    class_exists = True
+                    has_obj = True
 
-            if not class_exists:
+            if not has_obj:
                 continue
 
             new_txt_path = new_txt_dir / txt_path.name

@@ -3,45 +3,16 @@
 Convert from YOLO -> VOC
 """
 
+import xml.etree.ElementTree as ET
 from pathlib import Path
 from shutil import copy
 import traceback
 from PIL import Image
 from tqdm import tqdm
-from jinja2 import Template
 from functions import get_image_path, load_id2name_from_yaml
 
 
-annotation_template = """<annotation>
-    <folder>{{ folder }}</folder>
-    <filename>{{ filename }}</filename>
-    <path>{{ path }}</path>
-    <source>
-        <database>{{ database }}</database>
-    </source>
-    <size>
-        <width>{{ width }}</width>
-        <height>{{ height }}</height>
-        <depth>{{ depth }}</depth>
-    </size>
-    <segmented>{{ segmented }}</segmented>
-{% for object in objects %}    <object>
-        <name>{{ object.name }}</name>
-        <pose>{{ object.pose }}</pose>
-        <truncated>{{ object.truncated }}</truncated>
-        <difficult>{{ object.difficult }}</difficult>
-        <bndbox>
-            <xmin>{{ object.xmin }}</xmin>
-            <ymin>{{ object.ymin }}</ymin>
-            <xmax>{{ object.xmax }}</xmax>
-            <ymax>{{ object.ymax }}</ymax>
-        </bndbox>
-    </object>
-{% endfor %}</annotation>
-"""
-
-
-class Writer:
+class VOCWriter:
     def __init__(
         self,
         path: str | Path,
@@ -51,21 +22,27 @@ class Writer:
         database: str = "Unknown",
         segmented: int = 0,
     ):
-        self.annotation_template: Template = Template(annotation_template)
-
         path = Path(path)
 
-        self.template_parameters = {
-            "path": path.resolve(),
-            "filename": path.name,
-            "folder": path.parent.name,
-            "width": width,
-            "height": height,
-            "depth": depth,
-            "database": database,
-            "segmented": segmented,
-            "objects": [],
-        }
+        # 创建根节点 <annotation>
+        self.root = ET.Element("annotation")
+
+        # 添加基础信息节点
+        ET.SubElement(self.root, "folder").text = path.parent.name
+        ET.SubElement(self.root, "filename").text = path.name
+        ET.SubElement(self.root, "path").text = str(path.resolve())
+
+        # <source>
+        source = ET.SubElement(self.root, "source")
+        ET.SubElement(source, "database").text = database
+
+        # <size>
+        size = ET.SubElement(self.root, "size")
+        ET.SubElement(size, "width").text = str(width)
+        ET.SubElement(size, "height").text = str(height)
+        ET.SubElement(size, "depth").text = str(depth)
+
+        ET.SubElement(self.root, "segmented").text = str(segmented)
 
     def addObject(
         self,
@@ -78,23 +55,31 @@ class Writer:
         truncated: int = 0,
         difficult: int = 0,
     ):
-        self.template_parameters["objects"].append(
-            {
-                "name": name,
-                "xmin": xmin,
-                "ymin": ymin,
-                "xmax": xmax,
-                "ymax": ymax,
-                "pose": pose,
-                "truncated": truncated,
-                "difficult": difficult,
-            }
-        )
+        # 创建 <object> 节点
+        obj = ET.SubElement(self.root, "object")
+
+        ET.SubElement(obj, "name").text = name
+        ET.SubElement(obj, "pose").text = pose
+        ET.SubElement(obj, "truncated").text = str(truncated)
+        ET.SubElement(obj, "difficult").text = str(difficult)
+
+        # <bndbox>
+        bndbox = ET.SubElement(obj, "bndbox")
+        ET.SubElement(bndbox, "xmin").text = str(xmin)
+        ET.SubElement(bndbox, "ymin").text = str(ymin)
+        ET.SubElement(bndbox, "xmax").text = str(xmax)
+        ET.SubElement(bndbox, "ymax").text = str(ymax)
 
     def save(self, annotation_path: str | Path):
-        content = self.annotation_template.render(**self.template_parameters)
-        with open(annotation_path, "w", encoding="utf-8") as file:
-            file.write(content)
+        # 构建 ElementTree 对象
+        tree = ET.ElementTree(self.root)
+
+        # Python 3.9+ 的缩进美化
+        if hasattr(ET, "indent"):
+            ET.indent(tree, space="    ", level=0)
+
+        # 写入文件
+        tree.write(annotation_path, encoding="utf-8", xml_declaration=False)
 
 
 def yolo2voc(
@@ -113,6 +98,8 @@ def yolo2voc(
         id2name (dict[int, str]): 类别 ID 到名称的映射字典, 只转换存在于 id2name 中的类别
         new_image_dir (str | Path, optional): 新的图片目录, 如果为 None 则不复制图片. Defaults to None.
     """
+    assert len(id2name) > 0
+
     print(
         "Converting YOLO to VOC...\n"
         f"txt_dirs: {txt_dirs}\n"
@@ -121,8 +108,6 @@ def yolo2voc(
         f"id2name: {id2name}\n"
         f"new_image_dir: {new_image_dir}"
     )
-
-    assert len(id2name) > 0
 
     txt_dirs = [txt_dirs] if isinstance(txt_dirs, (str, Path)) else txt_dirs
     txt_dirs = [Path(xml_dir) for xml_dir in txt_dirs]
@@ -140,6 +125,7 @@ def yolo2voc(
             raise FileNotFoundError(f"image_dir not exists: {image_dir}")
         _xml_paths = list(xml_dir.glob("*.txt"))
         txt_paths.extend(_xml_paths)
+        # 这里假设 get_image_path 函数能正确工作
         image_paths.extend([get_image_path(image_dir, i.stem) for i in _xml_paths])
 
     new_image_dir = Path(new_image_dir) if new_image_dir is not None else None
@@ -175,26 +161,35 @@ def yolo2voc(
 
             if new_image_dir is not None:
                 new_image_path = new_image_dir / image_path.name
+                # 如果文件已存在，可以选择覆盖或跳过，这里默认覆盖
                 copy(image_path, new_image_path)
 
             w, h = Image.open(image_path).size
             xml_path = new_xml_dir / f"{txt_stem}.xml"
-            writer = Writer(xml_path, w, h)
+
+            # 初始化 VOCWriter (这里传入的是图片路径，用于生成 xml 内的 path 标签)
+            writer = VOCWriter(image_path, w, h)
+
             for line in lines:
                 label, x_center, y_center, width, height = line
                 _id = int(label)
                 if _id not in id2name:
                     continue
+
+                # YOLO 坐标转换逻辑保持不变
                 x_min = round(w * max(float(x_center) - float(width) / 2, 0))
                 x_max = round(w * min(float(x_center) + float(width) / 2, 1))
                 y_min = round(h * max(float(y_center) - float(height) / 2, 0))
                 y_max = round(h * min(float(y_center) + float(height) / 2, 1))
+
                 writer.addObject(id2name[_id], x_min, y_min, x_max, y_max)
+
             writer.save(xml_path)
+
         except FileNotFoundError:
             print(f"Image file not found: {image_path}")
         except Exception:
-            print(f"Error: {traceback.format_exc()}")
+            print(f"Error processing {txt_path.name}: {traceback.format_exc()}")
 
 
 if __name__ == "__main__":

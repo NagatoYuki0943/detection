@@ -2,7 +2,7 @@
 
 from pathlib import Path
 import traceback
-from xml.etree import ElementTree
+import xml.etree.ElementTree as ET
 from tqdm import tqdm
 import yaml
 from collections import Counter
@@ -33,7 +33,7 @@ def fetch_voc(
     for xml_path in tqdm(xml_paths, desc="check val xml files"):
         try:
             with open(xml_path, "r", encoding="utf-8") as in_file:
-                tree = ElementTree.parse(in_file)
+                tree = ET.parse(in_file)
             root = tree.getroot()
 
             objs = tree.findall("object")

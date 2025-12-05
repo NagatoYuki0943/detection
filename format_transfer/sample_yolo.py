@@ -30,6 +30,10 @@ def sample_yolo(
         object_min_num (int, optional): 最少的物体数量. Defaults to 10.
         seed (int | None, optional): 随机种子. Defaults to None.
     """
+    assert 0 < val_percent < 1, (
+        f"val_percent should be between 0 and 1, but got {val_percent}"
+    )
+
     print(
         "Sample YOLO dataset...\n"
         f"txt_dirs: {txt_dirs}\n"
@@ -38,10 +42,6 @@ def sample_yolo(
         f"val_percent: {val_percent}\n"
         f"object_min_num: {object_min_num}\n"
         f"seed: {seed}"
-    )
-
-    assert 0 < val_percent < 1, (
-        f"val_percent should be between 0 and 1, but got {val_percent}"
     )
 
     if seed is not None:

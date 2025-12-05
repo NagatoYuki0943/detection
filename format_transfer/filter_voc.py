@@ -1,12 +1,14 @@
 """Filter voc dataset"""
 
+from typing import Literal
 from pathlib import Path
 from shutil import copy
 import traceback
-from xml.etree import ElementTree
+import xml.etree.ElementTree as ET
 import yaml
 from tqdm import tqdm
 from collections import Counter
+import cv2
 from functions import get_image_path, load_names_from_yaml
 
 
@@ -16,6 +18,12 @@ def filter_voc(
     filtered_save_dir: str | Path,
     keep_names: list[str],
     name_remap: dict[str, str] | None = None,
+    save_box_height_percent: float = 0.0,
+    save_box_width_percent: float = 0.0,
+    save_box_percent_type: Literal["greater_eq", "less_eq"] = "greater_eq",
+    train_height: int = 640,
+    train_width: int = 640,
+    use_train_size_calc_percent: bool = False,
 ) -> None:
     """Filter VOC dataset by keep_names
 
@@ -24,18 +32,33 @@ def filter_voc(
         image_dirs (str | Path | list[str | Path]): 已有图片目录
         filtered_save_dir (str | Path): 过滤后的 VOC 格式的 xml 文件和图片存放目录, 里面会有 xmls 和 images 文件夹
         keep_names (list[str]): 需要保留的类别名称 list
-        name_remap (dict[str, str] | None): 类别名称映射, 若为 None, 则不进行映射
+        id_remap (dict[int, int] | None): 类别 id 映射表, 若为 None, 则不进行映射
+        save_box_height_percent (float): box 高度占图片高度的比例, 过滤掉高度小于或者大于该比例的目标框
+        save_box_width_percent (float): box 宽度占图片宽度的比例, 过滤掉宽度小于或者大于该比例的目标框
+        save_box_percent_type (Literal["greater_eq", "less_eq"]): 过滤掉 box 高度或者宽度大于等于或者小于等于该比例的目标框
+        train_height (int): 训练时图片高度
+        train_width (int): 训练时图片宽度
+        use_train_size_calc_percent (bool): 是否使用训练时图片尺寸的计算最终比例
     """
+    assert len(keep_names) > 0
+    assert 0 <= save_box_height_percent <= 1
+    assert 0 <= save_box_width_percent <= 1
+    assert save_box_percent_type in ["greater_eq", "less_eq"]
+
     print(
         "Filter VOC dataset by keep_names...\n"
         f"xml_dirs: {xml_dirs}\n"
         f"image_dirs: {image_dirs}\n"
         f"filtered_save_dir: {filtered_save_dir}\n"
         f"keep_names: {keep_names}\n"
-        f"name_remap: {name_remap}"
+        f"name_remap: {name_remap}\n"
+        f"save_box_height_percent: {save_box_height_percent}\n"
+        f"save_box_width_percent: {save_box_width_percent}\n"
+        f"save_box_percent_type: {save_box_percent_type}\n"
+        f"train_height: {train_height}\n"
+        f"train_width: {train_width}\n"
+        f"use_train_size_calc_percent: {use_train_size_calc_percent}"
     )
-
-    assert len(keep_names) > 0
 
     xml_dirs = [xml_dirs] if isinstance(xml_dirs, (str, Path)) else xml_dirs
     xml_dirs = [Path(xml_dir) for xml_dir in xml_dirs]
@@ -81,29 +104,73 @@ def filter_voc(
     ):
         try:
             with open(xml_path, "r", encoding="utf-8") as in_file:
-                tree = ElementTree.parse(in_file)
+                tree = ET.parse(in_file)
             root = tree.getroot()
 
-            class_exists = False
+            image = cv2.imread(str(image_path))
+            height: float
+            width: float
+            channel: float
+            height, width, channel = image.shape
+
+            # 更新 xml 中的 size 标签
+            size = tree.find("size")
+            size.find("height").text = str(height)
+            size.find("width").text = str(width)
+            size.find("depth").text = str(channel)
+
+            has_obj = False
             objs = tree.findall("object")
             new_objs = []
             for obj in objs:
                 j += 1
                 root.remove(obj)
-                name = obj.find("name").text
-                if name in keep_names:
-                    class_exists = True
-                    # name 映射
-                    new_name = name_remap.get(name, name) if name_remap else name
-                    new_names.append(new_name)
-                    obj.find("name").text = new_name
-                    new_objs.append(obj)
 
-            if not class_exists:
+                # 按照类别过滤
+                name = obj.find("name").text
+                if name not in keep_names:
+                    continue
+
+                # 按照 box 框大小忽略
+                box = obj.find("bndbox")
+                xmin = float(box.find("xmin").text)
+                ymin = float(box.find("ymin").text)
+                xmax = float(box.find("xmax").text)
+                ymax = float(box.find("ymax").text)
+                box_height_percent: float = (ymax - ymin) / height
+                box_width_percent: float = (xmax - xmin) / width
+                if use_train_size_calc_percent:
+                    box_height_percent *= train_height / height
+                    box_width_percent *= train_width / width
+
+                if save_box_percent_type == "greater_eq" and (
+                    box_width_percent < save_box_width_percent
+                    or box_height_percent < save_box_height_percent
+                ):
+                    continue
+                if save_box_percent_type == "less_eq" and (
+                    box_width_percent > save_box_width_percent
+                    or box_height_percent > save_box_height_percent
+                ):
+                    continue
+
+                # name 映射
+                new_name = name_remap.get(name, name) if name_remap else name
+                new_names.append(new_name)
+                obj.find("name").text = new_name
+                new_objs.append(obj)
+                has_obj = True
+
+            # 按照类别过滤
+            if not has_obj:
                 continue
 
             for obj in new_objs:
                 root.append(obj)
+
+            # 自动调整缩进，space="\t" 使用 tab 缩进，或者 space="  " 使用两个空格
+            if hasattr(ET, "indent"):
+                ET.indent(tree, space="    ", level=0)
 
             new_xml_path = new_xml_dir / xml_path.name
             tree.write(new_xml_path)
@@ -139,26 +206,126 @@ def filter_voc(
     print(f"save yaml config to {new_yaml_path}")
 
 
+# if __name__ == "__main__":
+#     # 原本 xml 文件路径, 支持多个目录
+#     xml_dirs = [
+#         "../VOC/xmls/test2007",
+#     ]
+#     # 原本图片文件路径, 支持多个目录, 但是要和 xml_dirs 一一匹配
+#     image_dirs = [
+#         "../VOC/images/test2007",
+#     ]
+#     # 过滤后的 xmls 和 images 的存放路径, 里面会有 xmls 和 images 文件夹, 用来存放全部过滤后的数据
+#     filtered_save_dir = "../VOC/test2007--filtered--voc-format"
+#     # 对应的 yaml 文件路径(不是必须, 当前主要目的是获取类别名称)
+#     yaml_path = "../VOC/VOC.yaml"
+
+#     names = load_names_from_yaml(yaml_path)
+
+#     # 保留的类别名, 这里保留前一半类别
+#     keep_names = names[: len(names) // 2]
+
+#     # 类别的重映射
+#     name_remap = {i: i for i in keep_names}
+
+#     filter_voc(xml_dirs, image_dirs, filtered_save_dir, keep_names, name_remap)
+
 if __name__ == "__main__":
     # 原本 xml 文件路径, 支持多个目录
     xml_dirs = [
         "../VOC/xmls/test2007",
+        "../VOC/xmls/train2007",
+        "../VOC/xmls/train2012",
+        "../VOC/xmls/val2007",
+        "../VOC/xmls/val2012",
     ]
     # 原本图片文件路径, 支持多个目录, 但是要和 xml_dirs 一一匹配
     image_dirs = [
         "../VOC/images/test2007",
+        "../VOC/images/train2007",
+        "../VOC/images/train2012",
+        "../VOC/images/val2007",
+        "../VOC/images/val2012",
     ]
     # 过滤后的 xmls 和 images 的存放路径, 里面会有 xmls 和 images 文件夹, 用来存放全部过滤后的数据
-    filtered_save_dir = "../VOC/test2007--filtered--voc-format"
-    # 对应的 yaml 文件路径(不是必须, 当前主要目的是获取类别名称)
-    yaml_path = "../VOC/VOC.yaml"
+    filtered_save_dir = "../VOC--person--filtered--voc-format"
 
-    names = load_names_from_yaml(yaml_path)
-
-    # 保留的类别名, 这里保留前一半类别
-    keep_names = names[: len(names) // 2]
+    keep_names = ["person"]
 
     # 类别的重映射
-    name_remap = {i: i for i in keep_names}
+    name_remap = {"person": "person"}
 
-    filter_voc(xml_dirs, image_dirs, filtered_save_dir, keep_names, name_remap)
+    filter_voc(
+        xml_dirs,
+        image_dirs,
+        filtered_save_dir,
+        keep_names,
+        name_remap,
+        0.25,
+        0.25,
+        "less_eq",
+        use_train_size_calc_percent=True,
+    )
+
+# if __name__ == "__main__":
+#     # 原本 xml 文件路径, 支持多个目录
+#     xml_dirs = [
+#         "../coco/xmls/train2017",
+#         "../coco/xmls/val2017",
+#     ]
+#     # 原本图片文件路径, 支持多个目录, 但是要和 xml_dirs 一一匹配
+#     image_dirs = [
+#         "../coco/images/train2017",
+#         "../coco/images/val2017",
+#     ]
+#     # 过滤后的 xmls 和 images 的存放路径, 里面会有 xmls 和 images 文件夹, 用来存放全部过滤后的数据
+#     filtered_save_dir = "../coco--person--filtered--voc-format"
+
+#     keep_names = ["person"]
+
+#     # 类别的重映射
+#     name_remap = {"person": "person"}
+
+#     filter_voc(
+#         xml_dirs,
+#         image_dirs,
+#         filtered_save_dir,
+#         keep_names,
+#         name_remap,
+#         0.25,
+#         0.25,
+#         "less_eq",
+#         use_train_size_calc_percent=True,
+#     )
+
+
+# if __name__ == "__main__":
+#     # 原本 xml 文件路径, 支持多个目录
+#     xml_dirs = [
+#         "../CrowdHuman/train/xmls",
+#         "../CrowdHuman/val/xmls",
+#     ]
+#     # 原本图片文件路径, 支持多个目录, 但是要和 xml_dirs 一一匹配
+#     image_dirs = [
+#         "../CrowdHuman/train/images",
+#         "../CrowdHuman/val/images",
+#     ]
+#     # 过滤后的 xmls 和 images 的存放路径, 里面会有 xmls 和 images 文件夹, 用来存放全部过滤后的数据
+#     filtered_save_dir = "../CrowdHuman--person--filtered--voc-format"
+
+#     keep_names = ["fbox"]
+
+#     # 类别的重映射
+#     name_remap = {"fbox": "person"}
+
+#     filter_voc(
+#         xml_dirs,
+#         image_dirs,
+#         filtered_save_dir,
+#         keep_names,
+#         name_remap,
+#         0.25,
+#         0.25,
+#         "less_eq",
+#         use_train_size_calc_percent=True,
+#     )

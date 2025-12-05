@@ -7,7 +7,7 @@ from pathlib import Path
 from shutil import copy
 import traceback
 from PIL import Image
-from xml.etree import ElementTree
+import xml.etree.ElementTree as ET
 from tqdm import tqdm
 from functions import get_image_path, load_name2id_from_yaml
 
@@ -28,6 +28,8 @@ def voc2yolo(
         name2id (dict[str, int]): 类别名称到 ID 的映射, 只转换存在于 name2id 中的类别
         new_image_dir (str | Path, optional): 新的图片目录, 如果为 None 则不复制图片. Defaults to None.
     """
+    assert len(name2id) > 0
+
     print(
         "Converting VOC to YOLO...\n"
         f"xml_dirs: {xml_dirs}\n"
@@ -36,8 +38,6 @@ def voc2yolo(
         f"new_image_dir: {new_image_dir}\n"
         f"name2id: {name2id}"
     )
-
-    assert len(name2id) > 0
 
     xml_dirs = [xml_dirs] if isinstance(xml_dirs, (str, Path)) else xml_dirs
     xml_dirs = [Path(xml_dir) for xml_dir in xml_dirs]
@@ -74,7 +74,7 @@ def voc2yolo(
             txt_path = new_txt_dir / f"{xml_stem}.txt"
 
             with open(xml_path, "r", encoding="utf-8") as in_file:
-                tree = ElementTree.parse(in_file)
+                tree = ET.parse(in_file)
 
             w, h = Image.open(image_path).size
 
@@ -133,19 +133,38 @@ def voc2yolo(
             print(f"Error: {traceback.format_exc()}")
 
 
+# if __name__ == "__main__":
+#     # 原本的 xml 文件夹, 支持多个目录
+#     xml_dirs = [
+#         "../VOC/xmls/test2007",
+#     ]
+#     # 原本图片文件夹, 支持多个目录
+#     image_dirs = [
+#         "../VOC/images/test2007",
+#     ]
+#     # 新的 txt 文件夹, 会将全部的转换后的 txt 文件放到这个文件夹下
+#     new_txt_dir = "../VOC/labels/test2007-1"
+#     # yaml 配置路径
+#     yaml_path = "../VOC/VOC.yaml"
+#     name2id = load_name2id_from_yaml(yaml_path)
+#     # 新的图片文件夹, 会把全部图片放在这个文件夹下, 如果为 None 则不复制图片
+#     new_image_dir = None
+
+#     voc2yolo(xml_dirs, image_dirs, new_txt_dir, name2id, new_image_dir)
+
 if __name__ == "__main__":
     # 原本的 xml 文件夹, 支持多个目录
     xml_dirs = [
-        "../VOC/xmls/test2007",
+        "C:/ml/code/dataset/person--sample/val/xmls",
     ]
     # 原本图片文件夹, 支持多个目录
     image_dirs = [
-        "../VOC/images/test2007",
+        "C:/ml/code/dataset/person--sample/val/images",
     ]
     # 新的 txt 文件夹, 会将全部的转换后的 txt 文件放到这个文件夹下
-    new_txt_dir = "../VOC/labels/test2007-1"
+    new_txt_dir = "C:/ml/code/dataset/person--sample/val/labels"
     # yaml 配置路径
-    yaml_path = "../VOC/VOC.yaml"
+    yaml_path = "C:/ml/code/dataset/person--sample/data.yaml"
     name2id = load_name2id_from_yaml(yaml_path)
     # 新的图片文件夹, 会把全部图片放在这个文件夹下, 如果为 None 则不复制图片
     new_image_dir = None

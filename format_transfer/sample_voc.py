@@ -4,7 +4,7 @@ import random
 from pathlib import Path
 from shutil import copy
 import traceback
-from xml.etree import ElementTree
+import xml.etree.ElementTree as ET
 import yaml
 from tqdm import tqdm
 from collections import Counter
@@ -31,6 +31,10 @@ def sample_voc(
         object_min_num (int, optional): 最少的物体数量. Defaults to 10.
         seed (int | None, optional): 随机种子. Defaults to None.
     """
+    assert 0 < val_percent < 1, (
+        f"val_percent should be between 0 and 1, but got {val_percent}"
+    )
+
     print(
         "Sample VOC dataset...\n"
         f"xml_dirs: {xml_dirs}\n"
@@ -39,10 +43,6 @@ def sample_voc(
         f"val_percent: {val_percent}\n"
         f"object_min_num: {object_min_num}\n"
         f"seed: {seed}"
-    )
-
-    assert 0 < val_percent < 1, (
-        f"val_percent should be between 0 and 1, but got {val_percent}"
     )
 
     if seed is not None:
@@ -103,7 +103,7 @@ def sample_voc(
         for xml_path in tqdm(val_xml_paths, desc="check val xml files"):
             try:
                 with open(xml_path, "r", encoding="utf-8") as in_file:
-                    tree = ElementTree.parse(in_file)
+                    tree = ET.parse(in_file)
                 root = tree.getroot()
 
                 objs = tree.findall("object")
@@ -129,7 +129,7 @@ def sample_voc(
         for xml_path in tqdm(train_xml_paths, desc="check train xml files"):
             try:
                 with open(xml_path, "r", encoding="utf-8") as in_file:
-                    tree = ElementTree.parse(in_file)
+                    tree = ET.parse(in_file)
                 root = tree.getroot()
 
                 objs = tree.findall("object")
@@ -218,17 +218,41 @@ def sample_voc(
             print(f"Error: {traceback.format_exc()}")
 
 
+# if __name__ == "__main__":
+#     # 原本 xml 文件路径
+#     xml_dirs = [
+#         "../VOC/xmls/test2007",
+#     ]
+#     # 原本图片文件路径
+#     image_dirs = [
+#         "../VOC/images/test2007",
+#     ]
+#     # 采样后的路径, 包含 train 和 val 两个文件夹, 以及对应的 xmls 和 images 文件夹, 用来存放全部采样后的数据
+#     sample_dir = "../VOC/test2007--sample--voc"
+#     # 验证集占比
+#     val_percent = 0.1
+#     # 划分数据集时每个类别的最小数量, 如果数据集太少不一定能保证, 需要调整这个值
+#     object_min_num = 10
+#     # 随机种子, 保证可以复现, None 代表不设置
+#     seed = None
+
+#     sample_voc(xml_dirs, image_dirs, sample_dir, val_percent, object_min_num, seed)
+
 if __name__ == "__main__":
     # 原本 xml 文件路径
     xml_dirs = [
-        "../VOC/xmls/test2007",
+        "C:/ml/code/dataset/CrowdHuman--person--filtered--voc-format/xmls",
+        "C:/ml/code/dataset/coco--person--filtered--voc-format/xmls",
+        "C:/ml/code/dataset/VOC--person--filtered--voc-format/xmls",
     ]
     # 原本图片文件路径
     image_dirs = [
-        "../VOC/images/test2007",
+        "C:/ml/code/dataset/CrowdHuman--person--filtered--voc-format/images",
+        "C:/ml/code/dataset/coco--person--filtered--voc-format/images",
+        "C:/ml/code/dataset/VOC--person--filtered--voc-format/images",
     ]
     # 采样后的路径, 包含 train 和 val 两个文件夹, 以及对应的 xmls 和 images 文件夹, 用来存放全部采样后的数据
-    sample_dir = "../VOC/test2007--sample--voc"
+    sample_dir = "C:/ml/code/dataset/person--sample"
     # 验证集占比
     val_percent = 0.1
     # 划分数据集时每个类别的最小数量, 如果数据集太少不一定能保证, 需要调整这个值
@@ -237,3 +261,4 @@ if __name__ == "__main__":
     seed = None
 
     sample_voc(xml_dirs, image_dirs, sample_dir, val_percent, object_min_num, seed)
+
