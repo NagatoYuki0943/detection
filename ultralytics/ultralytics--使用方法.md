@@ -2055,7 +2055,6 @@ from ultralytics import YOLO
 
 
 model_path = Path("weights/yolo11n.pt").resolve()
-# model_path = Path("path/to/best.pt").resolve()
 data_path = Path("datasets/coco/coco.yaml").resolve()
 
 print(f"{model_path} is exists: {model_path.exists()}")
@@ -2120,7 +2119,14 @@ elif export_type == "tensorrt":
         fraction=1.0,
         device=0,
     )
-
+elif export_type == "ncnn":
+    model.export(
+        format="ncnn",
+        imgsz=640,
+        half=False,
+        batch=1,
+        device="cpu",
+    )
 ```
 
 cmd
