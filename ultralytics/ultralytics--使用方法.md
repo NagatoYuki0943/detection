@@ -1982,7 +1982,7 @@ model_path = Path("weights/yolov8x-worldv2.pt").resolve()
 source = Path("datasets/coco/images/val2017/000000000139.jpg").resolve()
 source = Path("datasets/coco/images/val2017/").resolve()
 project = "myproject"
-name = "yolo-world/yolov8x-worldv2/predict"
+name = "coco/yolo-world/yolov8x-worldv2/predict"
 
 print(f"{model_path} is exists: {model_path.exists()}")
 print(f"{source} is exists: {source.exists()}")
@@ -2049,11 +2049,11 @@ use_prompt = False  # prompt based (optional)
 if use_prompt:
     # 文本/视觉提示模型
     model_path = Path("weights/yoloe-11l-seg.pt").resolve()
-    name = "yoloe/yoloe-11l-seg/predict"
+    name = "coco/yoloe/yoloe-11l-seg/predict"
 else:
     # 无提示词模型
     model_path = Path("weights/yoloe-11l-seg-pf.pt").resolve()
-    name = "yoloe/yoloe-11l-seg-pf/predict"
+    name = "coco/yoloe/yoloe-11l-seg-pf/predict"
 source = Path("datasets/coco/images/val2017/000000000139.jpg").resolve()
 source = Path("datasets/coco/images/val2017/").resolve()
 project = "myproject"
