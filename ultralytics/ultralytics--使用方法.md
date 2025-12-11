@@ -1927,7 +1927,7 @@ results = model(
     imgsz=640,
     rect=True,
     half=False,
-    device=0,
+    device="cpu",
     batch=1,
     max_det=300,
     augment=False,
@@ -1940,7 +1940,7 @@ results = model(
     compile=False,
     show=False,
     save=True,
-    save_txt=False,
+    save_txt=True,
     save_conf=False,
     save_crop=False,
     show_labels=True,
@@ -1958,7 +1958,6 @@ for result in results:
     obb = result.obb  # Oriented boxes object for OBB outputs
     # result.show()  # display to screen
     # result.save(filename="result.jpg")  # save to disk
-
 ```
 
 cmd
@@ -1967,6 +1966,148 @@ cmd
 yolo detect predict imgsz=640 save=True save_txt=True save_conf=True save_crop=True conf=0.25 iou=0.7 data=ultralytics/cfg/datasets/coco8.yaml model=weights/yolo11n.pt source=ultralytics/assets/bus.jpg device=0 project=myproject name=yolo11n/predict
 
 yolo detect predict imgsz=640 save=True save_txt=True save_conf=True save_crop=True conf=0.25 iou=0.7 data=ultralytics/cfg/datasets/coco8.yaml model=weights/yolo11n.pt source=../datasets/coco8/images/train2017 device=0 project=myproject name=yolo11n/predict
+```
+
+### yolo-world
+
+```python
+# https://docs.ultralytics.com/zh/models/yolo-world/
+
+from pathlib import Path
+from ultralytics import YOLOWorld
+from ultralytics.engine.results import Results
+
+
+model_path = Path("weights/yolov8x-worldv2.pt").resolve()
+source = Path("datasets/coco/images/val2017/000000000139.jpg").resolve()
+source = Path("datasets/coco/images/val2017/").resolve()
+project = "myproject"
+name = "yolo-world/yolov8x-worldv2/predict"
+
+print(f"{model_path} is exists: {model_path.exists()}")
+print(f"{source} is exists: {source.exists()}")
+
+
+model = YOLOWorld(model_path)
+
+# prompt based (optional)
+# names = ["person", "car", "bus", "black cat", "white dog walking"]
+# model.set_classes(names)
+
+results = model(
+    source,
+    conf=0.25,
+    iou=0.7,
+    imgsz=640,
+    rect=True,
+    half=False,
+    device=0,
+    batch=1,
+    max_det=300,
+    augment=False,
+    agnostic_nms=False,
+    classes=None,  # list[int] | None, 将预测结果筛选到一组类别 ID。只会返回属于指定类别的检测结果。这对于专注于多类别检测任务中的相关对象非常有用。
+    project=project,
+    name=name,
+    stream=True,
+    verbose=True,
+    compile=False,
+    show=False,
+    save=True,
+    save_txt=True,
+    save_conf=False,
+    save_crop=False,
+    show_labels=True,
+    show_conf=True,
+    show_boxes=True,
+    line_width=None,
+)
+
+result: Results
+for result in results:
+    boxes = result.boxes  # Boxes object for bounding box outputs
+    masks = result.masks  # Masks object for segmentation masks outputs
+    keypoints = result.keypoints  # Keypoints object for pose outputs
+    probs = result.probs  # Probs object for classification outputs
+    obb = result.obb  # Oriented boxes object for OBB outputs
+    # result.show()  # display to screen
+    # result.save(filename="result.jpg")  # save to disk
+```
+
+### yoloe
+
+```python
+# https://docs.ultralytics.com/zh/models/yoloe/
+
+from pathlib import Path
+from ultralytics import YOLOE
+from ultralytics.engine.results import Results
+
+
+use_prompt = False  # prompt based (optional)
+
+if use_prompt:
+    # 文本/视觉提示模型
+    model_path = Path("weights/yoloe-11l-seg.pt").resolve()
+    name = "yoloe/yoloe-11l-seg/predict"
+else:
+    # 无提示词模型
+    model_path = Path("weights/yoloe-11l-seg-pf.pt").resolve()
+    name = "yoloe/yoloe-11l-seg-pf/predict"
+source = Path("datasets/coco/images/val2017/000000000139.jpg").resolve()
+source = Path("datasets/coco/images/val2017/").resolve()
+project = "myproject"
+
+
+print(f"{model_path} is exists: {model_path.exists()}")
+print(f"{source} is exists: {source.exists()}")
+
+
+model = YOLOE(model_path, task="segment")
+
+# prompt based (optional)
+if use_prompt:
+    names = ["person", "car", "bus", "black cat", "white dog walking"]
+    model.set_classes(names, model.get_text_pe(names))
+
+results = model(
+    source,
+    conf=0.25,
+    iou=0.7,
+    imgsz=640,
+    rect=True,
+    half=False,
+    device=0,
+    batch=1,
+    max_det=300,
+    augment=False,
+    agnostic_nms=False,
+    classes=None,  # list[int] | None, 将预测结果筛选到一组类别 ID。只会返回属于指定类别的检测结果。这对于专注于多类别检测任务中的相关对象非常有用。
+    project=project,
+    name=name,
+    stream=True,
+    verbose=True,
+    compile=False,
+    show=False,
+    save=True,
+    save_txt=True,
+    save_conf=False,
+    save_crop=False,
+    show_labels=True,
+    show_conf=True,
+    show_boxes=True,
+    line_width=None,
+)
+
+result: Results
+for result in results:
+    boxes = result.boxes  # Boxes object for bounding box outputs
+    masks = result.masks  # Masks object for segmentation masks outputs
+    keypoints = result.keypoints  # Keypoints object for pose outputs
+    probs = result.probs  # Probs object for classification outputs
+    obb = result.obb  # Oriented boxes object for OBB outputs
+    # result.show()  # display to screen
+    # result.save(filename="result.jpg")  # save to disk
 ```
 
 # [导出](https://docs.ultralytics.com/zh/modes/export/)
@@ -2064,7 +2205,7 @@ print(f"{data_path} is exists: {data_path.exists()}")
 model = YOLO(model_path, task="detect")
 
 
-export_type = "torchscript"
+export_type = "onnx"
 
 
 # Export the model
