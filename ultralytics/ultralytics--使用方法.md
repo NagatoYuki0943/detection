@@ -1940,6 +1940,7 @@ results = model(
     compile=False,
     show=False,
     save=True,
+    save_frames=False,
     save_txt=True,
     save_conf=False,
     save_crop=False,
@@ -1951,11 +1952,17 @@ results = model(
 
 result: Results
 for result in results:
+    result.orig_img
+    result.orig_shape
     boxes = result.boxes  # Boxes object for bounding box outputs
-    masks = result.masks  # Masks object for segmentation masks outputs
-    keypoints = result.keypoints  # Keypoints object for pose outputs
-    probs = result.probs  # Probs object for classification outputs
-    obb = result.obb  # Oriented boxes object for OBB outputs
+    boxes.cls
+    boxes.conf
+    boxes.xyxy
+    result.masks  # Masks object for segmentation masks outputs
+    result.keypoints  # Keypoints object for pose outputs
+    result.probs  # Probs object for classification outputs
+    result.obb  # Oriented boxes object for OBB outputs
+    result.path
     # result.show()  # display to screen
     # result.save(filename="result.jpg")  # save to disk
 ```
@@ -2001,7 +2008,7 @@ results = model(
     imgsz=640,
     rect=True,
     half=False,
-    device=0,
+    device="cpu",
     batch=1,
     max_det=300,
     augment=False,
@@ -2014,6 +2021,7 @@ results = model(
     compile=False,
     show=False,
     save=True,
+    save_frames=False,
     save_txt=True,
     save_conf=False,
     save_crop=False,
@@ -2025,11 +2033,17 @@ results = model(
 
 result: Results
 for result in results:
+    result.orig_img
+    result.orig_shape
     boxes = result.boxes  # Boxes object for bounding box outputs
-    masks = result.masks  # Masks object for segmentation masks outputs
-    keypoints = result.keypoints  # Keypoints object for pose outputs
-    probs = result.probs  # Probs object for classification outputs
-    obb = result.obb  # Oriented boxes object for OBB outputs
+    boxes.cls
+    boxes.conf
+    boxes.xyxy
+    result.masks  # Masks object for segmentation masks outputs
+    result.keypoints  # Keypoints object for pose outputs
+    result.probs  # Probs object for classification outputs
+    result.obb  # Oriented boxes object for OBB outputs
+    result.path
     # result.show()  # display to screen
     # result.save(filename="result.jpg")  # save to disk
 ```
@@ -2077,7 +2091,7 @@ results = model(
     imgsz=640,
     rect=True,
     half=False,
-    device=0,
+    device="cpu",
     batch=1,
     max_det=300,
     augment=False,
@@ -2090,6 +2104,7 @@ results = model(
     compile=False,
     show=False,
     save=True,
+    save_frames=False,
     save_txt=True,
     save_conf=False,
     save_crop=False,
@@ -2101,11 +2116,17 @@ results = model(
 
 result: Results
 for result in results:
+    result.orig_img
+    result.orig_shape
     boxes = result.boxes  # Boxes object for bounding box outputs
-    masks = result.masks  # Masks object for segmentation masks outputs
-    keypoints = result.keypoints  # Keypoints object for pose outputs
-    probs = result.probs  # Probs object for classification outputs
-    obb = result.obb  # Oriented boxes object for OBB outputs
+    boxes.cls
+    boxes.conf
+    boxes.xyxy
+    result.masks  # Masks object for segmentation masks outputs
+    result.keypoints  # Keypoints object for pose outputs
+    result.probs  # Probs object for classification outputs
+    result.obb  # Oriented boxes object for OBB outputs
+    result.path
     # result.show()  # display to screen
     # result.save(filename="result.jpg")  # save to disk
 ```
