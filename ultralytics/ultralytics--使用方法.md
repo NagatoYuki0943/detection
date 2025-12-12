@@ -1930,9 +1930,13 @@ results = model(
     device="cpu",
     batch=1,
     max_det=300,
+    vid_stride=1,
+    stream_buffer=False,
+    visualize=False,
     augment=False,
     agnostic_nms=False,
     classes=None,  # list[int] | None, 将预测结果筛选到一组类别 ID。只会返回属于指定类别的检测结果。这对于专注于多类别检测任务中的相关对象非常有用。
+    retina_masks=False,
     project=project,
     name=name,
     stream=True,
@@ -1963,6 +1967,7 @@ for result in results:
     result.probs  # Probs object for classification outputs
     result.obb  # Oriented boxes object for OBB outputs
     result.path
+    result.save_dir
     # result.show()  # display to screen
     # result.save(filename="result.jpg")  # save to disk
 ```
@@ -2011,9 +2016,13 @@ results = model(
     device="cpu",
     batch=1,
     max_det=300,
+    vid_stride=1,
+    stream_buffer=False,
+    visualize=False,
     augment=False,
     agnostic_nms=False,
     classes=None,  # list[int] | None, 将预测结果筛选到一组类别 ID。只会返回属于指定类别的检测结果。这对于专注于多类别检测任务中的相关对象非常有用。
+    retina_masks=False,
     project=project,
     name=name,
     stream=True,
@@ -2044,6 +2053,7 @@ for result in results:
     result.probs  # Probs object for classification outputs
     result.obb  # Oriented boxes object for OBB outputs
     result.path
+    result.save_dir
     # result.show()  # display to screen
     # result.save(filename="result.jpg")  # save to disk
 ```
@@ -2094,9 +2104,13 @@ results = model(
     device="cpu",
     batch=1,
     max_det=300,
+    vid_stride=1,
+    stream_buffer=False,
+    visualize=False,
     augment=False,
     agnostic_nms=False,
     classes=None,  # list[int] | None, 将预测结果筛选到一组类别 ID。只会返回属于指定类别的检测结果。这对于专注于多类别检测任务中的相关对象非常有用。
+    retina_masks=False,
     project=project,
     name=name,
     stream=True,
@@ -2127,6 +2141,7 @@ for result in results:
     result.probs  # Probs object for classification outputs
     result.obb  # Oriented boxes object for OBB outputs
     result.path
+    result.save_dir
     # result.show()  # display to screen
     # result.save(filename="result.jpg")  # save to disk
 ```
