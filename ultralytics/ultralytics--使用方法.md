@@ -1958,18 +1958,25 @@ result: Results
 for result in results:
     result.orig_img
     result.orig_shape
+    result.names
     boxes = result.boxes  # Boxes object for bounding box outputs
+    boxes.id
     boxes.cls
     boxes.conf
     boxes.xyxy
+    boxes.xyxyn
+    boxes.xywh
+    boxes.xywhn
     result.masks  # Masks object for segmentation masks outputs
     result.keypoints  # Keypoints object for pose outputs
     result.probs  # Probs object for classification outputs
     result.obb  # Oriented boxes object for OBB outputs
-    result.path
-    result.save_dir
+    result.path  # Path to the input image file.
+    result.save_dir  # Directory to save results.
     # result.show()  # display to screen
-    # result.save(filename="result.jpg")  # save to disk
+    # result.save(filename="result.jpg")  # Save annotated inference results image to file.
+    # result.save_txt(txt_file="result.txt", save_conf=False)  # Save detection results to a text file.
+    # result.save_crop(save_dir="crops", file_name="im.jpg")  # Save cropped detection images to specified directory.
 ```
 
 cmd
@@ -2044,18 +2051,25 @@ result: Results
 for result in results:
     result.orig_img
     result.orig_shape
+    result.names
     boxes = result.boxes  # Boxes object for bounding box outputs
+    boxes.id
     boxes.cls
     boxes.conf
     boxes.xyxy
+    boxes.xyxyn
+    boxes.xywh
+    boxes.xywhn
     result.masks  # Masks object for segmentation masks outputs
     result.keypoints  # Keypoints object for pose outputs
     result.probs  # Probs object for classification outputs
     result.obb  # Oriented boxes object for OBB outputs
-    result.path
-    result.save_dir
+    result.path  # Path to the input image file.
+    result.save_dir  # Directory to save results.
     # result.show()  # display to screen
-    # result.save(filename="result.jpg")  # save to disk
+    # result.save(filename="result.jpg")  # Save annotated inference results image to file.
+    # result.save_txt(txt_file="result.txt", save_conf=False)  # Save detection results to a text file.
+    # result.save_crop(save_dir="crops", file_name="im.jpg")  # Save cropped detection images to specified directory.
 ```
 
 ### yoloe
@@ -2132,18 +2146,25 @@ result: Results
 for result in results:
     result.orig_img
     result.orig_shape
+    result.names
     boxes = result.boxes  # Boxes object for bounding box outputs
+    boxes.id
     boxes.cls
     boxes.conf
     boxes.xyxy
+    boxes.xyxyn
+    boxes.xywh
+    boxes.xywhn
     result.masks  # Masks object for segmentation masks outputs
     result.keypoints  # Keypoints object for pose outputs
     result.probs  # Probs object for classification outputs
     result.obb  # Oriented boxes object for OBB outputs
-    result.path
-    result.save_dir
+    result.path  # Path to the input image file.
+    result.save_dir  # Directory to save results.
     # result.show()  # display to screen
-    # result.save(filename="result.jpg")  # save to disk
+    # result.save(filename="result.jpg")  # Save annotated inference results image to file.
+    # result.save_txt(txt_file="result.txt", save_conf=False)  # Save detection results to a text file.
+    # result.save_crop(save_dir="crops", file_name="im.jpg")  # Save cropped detection images to specified directory.
 ```
 
 # [导出](https://docs.ultralytics.com/zh/modes/export/)
