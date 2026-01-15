@@ -2086,12 +2086,12 @@ use_prompt = False  # prompt based (optional)
 
 if use_prompt:
     # 文本/视觉提示模型
-    model_path = Path("weights/yoloe-11l-seg.pt").resolve()
-    name = "coco/yoloe/yoloe-11l-seg/predict"
+    model_path = Path("weights/yoloe-26x-seg.pt").resolve()
+    name = "coco/yoloe/yoloe-26x-seg/predict"
 else:
     # 无提示词模型
-    model_path = Path("weights/yoloe-11l-seg-pf.pt").resolve()
-    name = "coco/yoloe/yoloe-11l-seg-pf/predict"
+    model_path = Path("weights/yoloe-26x-seg-pf.pt").resolve()
+    name = "coco/yoloe/yoloe-26x-seg-pf/predict"
 source = Path("datasets/coco/images/val2017/000000000139.jpg").resolve()
 source = Path("datasets/coco/images/val2017/").resolve()
 project = "myproject"
