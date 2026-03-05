@@ -623,7 +623,7 @@ YOLO 模型的训练设置包括训练过程中使用的各种超参数和配置
 | `time`            | `float`                  | `None`   | 最长训练时间（以小时为单位）。如果设置此参数，它将覆盖 `epochs` 参数，允许训练在指定时长后自动停止。适用于时间受限的训练场景。 |
 | `patience`        | `int`                    | `100`    | 在验证指标没有改善的情况下，等待多少个epoch后提前停止训练。通过在性能停滞时停止训练，有助于防止[过拟合](https://www.ultralytics.com/glossary/overfitting)。 |
 | `batch`           | `int` 或 `float`         | `16`     | [批次大小](https://www.ultralytics.com/glossary/batch-size)，具有三种模式：设置为整数（例如， `batch=16`），自动模式，GPU 内存利用率为 60%（`batch=-1`），或具有指定利用率分数的自动模式（`batch=0.70`）。 |
-| `imgsz`           | `int`                    | `640`    | 用于训练的目标图像大小。图像被调整为边长等于指定值的正方形（如果 `rect=False`），为 YOLO 模型保留宽高比，但不为 RTDETR 保留。影响模型 [准确性](https://www.ultralytics.com/glossary/accuracy) 和计算复杂度。 |
+| `imgsz`           | `int`                    | `640`    | 用于训练的目标图像大小。图像被调整为边长等于指定值的正方形（如果 `rect=False`），为 YOLO 模型保留宽高比，但不为 RT-DETR 保留。影响模型 [准确性](https://www.ultralytics.com/glossary/accuracy) 和计算复杂度。 |
 | `save`            | `bool`                   | `True`   | 启用保存训练检查点和最终模型权重。可用于恢复训练或[模型部署](https://www.ultralytics.com/glossary/model-deployment)。 |
 | `save_period`     | `int`                    | `-1`     | 保存模型检查点的频率，以 epoch 为单位指定。值为 -1 时禁用此功能。适用于在长时间训练期间保存临时模型。 |
 | `cache`           | `bool`                   | `False`  | 启用在内存中缓存数据集图像（`True`/`ram`），在磁盘上缓存（`disk`），或禁用缓存（`False`）。通过减少磁盘 I/O 来提高训练速度，但会增加内存使用量。 |
@@ -633,13 +633,14 @@ YOLO 模型的训练设置包括训练过程中使用的各种超参数和配置
 | `name`            | `str`                    | `None`   | 训练运行的名称。用于在项目文件夹中创建一个子目录，训练日志和输出存储在该子目录中。 |
 | `exist_ok`        | `bool`                   | `False`  | 如果为 True，则允许覆盖现有的 project/name 目录。适用于迭代实验，无需手动清除之前的输出。 |
 | `pretrained`      | `bool` 或 `str`          | `True`   | 确定是否从预训练模型开始训练。可以是一个布尔值，也可以是加载权重的特定模型的字符串路径。增强训练效率和模型性能。 |
-| `optimizer`       | `str`                    | `'auto'` | 训练优化器的选择。选项包括 `SGD`, `Adam`, `AdamW`, `NAdam`, `RAdam`, `RMSProp` 等等，或者 `auto` 用于基于模型配置自动选择。影响收敛速度和稳定性。 |
+| `optimizer`       | `str`                    | `'auto'` | 训练优化器的选择。选项包括 `SGD`, `MuSGD`, `Adam`, `Adamax`, `AdamW`, `NAdam`, `RAdam`, `RMSProp`或 `auto` 用于基于模型配置自动选择。影响收敛速度和稳定性。 |
 | `seed`            | `int`                    | `0`      | 设置训练的随机种子，确保在相同配置下运行结果的可重复性。     |
 | `deterministic`   | `bool`                   | `True`   | 强制使用确定性算法，确保可重复性，但由于限制了非确定性算法，可能会影响性能和速度。 |
+| `verbose`         | `bool`                   | `True`   | 在训练期间启用详细输出，在控制台中显示进度条、每 epoch 指标和额外的训练信息。 |
 | `single_cls`      | `bool`                   | `False`  | 在多类别数据集中，将所有类别视为单个类别进行训练。适用于二元分类任务或侧重于对象是否存在而非分类时。 |
 | `classes`         | `list[int]`              | `None`   | 指定要训练的类 ID 列表。可用于在训练期间过滤掉并仅关注某些类。 |
 | `rect`            | `bool`                   | `False`  | 启用最小填充策略——批量中的图像被最小程度地填充以达到一个共同的大小，最长边等于 `imgsz`。可以提高效率和速度，但可能会影响模型精度。 |
-| `multi_scale`     | `bool`                   | `False`  | 通过增加/减少来启用多尺度训练 `imgsz` 高达 `0.5` 在训练期间。训练模型，使其在多次迭代中更加准确 `imgsz` 在推理过程中。 |
+| `multi_scale`     | `float`                  | `0.0`    | 随机变化 `imgsz` 每批次误差为± `multi_scale` （例如 `0.25` -> `0.75x` 到 `1.25x`)，四舍五入至模型步长倍数； `0.0` 禁用多尺度训练。 |
 | `cos_lr`          | `bool`                   | `False`  | 使用余弦[学习率](https://www.ultralytics.com/glossary/learning-rate)调度器，在 epochs 上按照余弦曲线调整学习率。有助于管理学习率，从而实现更好的收敛。 |
 | `close_mosaic`    | `int`                    | `10`     | 在最后 N 个 epochs 中禁用 mosaic [数据增强](https://www.ultralytics.com/glossary/data-augmentation)，以在完成前稳定训练。设置为 0 可禁用此功能。 |
 | `resume`          | `bool`                   | `False`  | 从上次保存的检查点恢复训练。自动加载模型权重、优化器状态和 epoch 计数，无缝继续训练。 |
@@ -649,7 +650,7 @@ YOLO 模型的训练设置包括训练过程中使用的各种超参数和配置
 | `freeze`          | `int` 或 `list`          | `None`   | 冻结模型的前 N 层或按索引指定的层，从而减少可训练参数的数量。适用于微调或[迁移学习](https://www.ultralytics.com/glossary/transfer-learning)。 |
 | `lr0`             | `float`                  | `0.01`   | 初始学习率（即 `SGD=1E-2`, `Adam=1E-3`)。调整此值对于优化过程至关重要，它会影响模型权重更新的速度。 |
 | `lrf`             | `float`                  | `0.01`   | 最终学习率作为初始速率的一部分 = (`lr0 * lrf`），与调度器结合使用以随时间调整学习率。 |
-| `momentum`        | `float`                  | `0.937`  | SGD 的动量因子或 [Adam 优化器](https://www.ultralytics.com/glossary/adam-optimizer)的 beta1，影响当前更新中过去梯度的合并。 |
+| `momentum`        | `float`                  | `0.937`  | SGD 的动量因子或 [Adam 优化器](https://www.ultralytics.com/glossary/adam-optimizer) 的 beta1，影响当前更新中过去梯度的整合。 |
 | `weight_decay`    | `float`                  | `0.0005` | L2 [正则化](https://www.ultralytics.com/glossary/regularization)项，惩罚大权重以防止过拟合。 |
 | `warmup_epochs`   | `float`                  | `3.0`    | 学习率预热的 epochs 数，将学习率从低值逐渐增加到初始学习率，以在早期稳定训练。 |
 | `warmup_momentum` | `float`                  | `0.8`    | 预热阶段的初始动量，在预热期间逐渐调整到设定的动量。         |
@@ -658,22 +659,25 @@ YOLO 模型的训练设置包括训练过程中使用的各种超参数和配置
 | `cls`             | `float`                  | `0.5`    | 分类损失在总损失函数中的权重，影响正确类别预测相对于其他成分的重要性。 |
 | `dfl`             | `float`                  | `1.5`    | 分布焦点损失的权重，在某些 YOLO 版本中用于细粒度分类。       |
 | `pose`            | `float`                  | `12.0`   | 在为姿势估计训练的模型中，姿势损失的权重会影响对准确预测姿势关键点的强调。 |
-| `kobj`            | `float`                  | `2.0`    | 姿势估计模型中关键点对象性损失的权重，用于平衡检测置信度和姿势准确性。 |
+| `kobj`            | `float`                  | `1.0`    | 姿势估计模型中关键点对象性损失的权重，用于平衡检测置信度和姿势准确性。 |
+| `rle`             | `float`                  | `1.0`    | 姿势估计模型中残差对数似然估计损失的权重，影响关键点定位的精度。 |
+| `angle`           | `float`                  | `1.0`    | obb模型中角度损失的权重，影响定向边界框角度预测的精度。      |
 | `nbs`             | `int`                    | `64`     | 用于损失归一化的标称批量大小。                               |
 | `overlap_mask`    | `bool`                   | `True`   | 确定是否应将对象掩码合并为单个掩码以进行训练，还是为每个对象保持分离。如果发生重叠，则在合并期间，较小的掩码会覆盖在较大的掩码之上。 |
 | `mask_ratio`      | `int`                    | `4`      | 分割掩码的下采样率，影响训练期间使用的掩码分辨率。           |
 | `dropout`         | `float`                  | `0.0`    | 分类任务中用于正则化的 Dropout 率，通过在训练期间随机省略单元来防止过拟合。 |
 | `val`             | `bool`                   | `True`   | 在训练期间启用验证，从而可以定期评估模型在单独数据集上的性能。 |
-| `plots`           | `bool`                   | `False`  | 生成并保存训练和验证指标的图表，以及预测示例，从而提供对模型性能和学习进度的可视化见解。 |
+| `plots`           | `bool`                   | `True`   | 生成并保存训练和验证指标的图表，以及预测示例，从而提供对模型性能和学习进度的可视化见解。 |
 | `compile`         | `bool` 或 `str`          | `False`  | 启用 PyTorch 2.x `torch.compile` 使用以下方式进行图形编译 `backend='inductor'`。接受 `True` → `"default"`, `False` → 禁用，或字符串模式，例如 `"default"`, `"reduce-overhead"`, `"max-autotune-no-cudagraphs"`。如果不支持，则会发出警告并回退到 Eager 模式。 |
+| `max_det`         | `int`                    | `300`    | 指定在训练的验证阶段保留的最大对象数量。                     |
 
 > 关于批量大小设置的说明
 >
-> 字段 `batch` 参数可以通过三种方式配置：
->
-> - **固定 [批量大小](https://www.ultralytics.com/glossary/batch-size)**：设置一个整数值（例如， `batch=16`），直接指定每个批次的图像数量。
-> - **自动模式（60% GPU 内存）**：使用 `batch=-1` 自动调整批量大小，以达到大约 60% 的 CUDA 内存利用率。
-> - **具有利用率分数的自动模式**：设置一个分数值（例如， `batch=0.70`），以根据指定的 GPU 内存使用率分数调整批量大小。
+> - 字段 `batch` 参数可以通过三种方式配置：
+>  - **固定 [批量大小](https://www.ultralytics.com/glossary/batch-size)**：设置一个整数值（例如， `batch=16`），直接指定每个批次的图像数量。
+>   - **自动模式（60% GPU 内存）**：使用 `batch=-1` 自动调整批量大小，以达到大约 60% 的 CUDA 内存利用率。
+>   - **具有利用率分数的自动模式**：设置一个分数值（例如， `batch=0.70`），以根据指定的 GPU 内存使用率分数调整批量大小。
+>   - **OOM自动重试**：若在首个训练 epoch 中发生CUDA 错误，训练器将自动将批量大小减半并重试（最多 3 次）。此机制仅适用于GPU ；GPU DDP）训练将立即抛出错误。
 
 >`rect = True` 使用长方形训练
 >
@@ -685,28 +689,31 @@ YOLO 模型的训练设置包括训练过程中使用的各种超参数和配置
 
 ### 增强设置和超参数
 
-数据增强技术对于提高 YOLO 模型的鲁棒性和性能至关重要，它通过在[训练数据](https://www.ultralytics.com/glossary/training-data)中引入变异性，帮助模型更好地泛化到未见过的数据。下表概述了每个数据增强参数的目的和效果：
+数据增强技术对于提高 YOLO 模型的鲁棒性和性能至关重要，它通过在[训练数据](https://www.ultralytics.com/glossary/training-data)中引入变异性，帮助模型更好地泛化到未见过的数据。
+
+下表概述了每个数据增强参数的目的和效果：
 
 | 参数                                                         | 类型    | 默认值        | 支持的任务                                     | 范围          | 描述                                                         |
 | :----------------------------------------------------------- | :------ | :------------ | :--------------------------------------------- | :------------ | :----------------------------------------------------------- |
-| [`hsv_h`](https://docs.ultralytics.com/zh/guides/yolo-data-augmentation/#hue-adjustment-hsv_h) | `float` | `0.015`       | `detect`, `segment`, `pose`, `obb`, `classify` | `0.0 - 1.0`   | 通过色轮的一小部分调整图像的色调，从而引入颜色变化。帮助模型在不同的光照条件下进行泛化。 |
-| [`hsv_s`](https://docs.ultralytics.com/zh/guides/yolo-data-augmentation/#saturation-adjustment-hsv_s) | `float` | `0.7`         | `detect`, `segment`, `pose`, `obb`, `classify` | `0.0 - 1.0`   | 通过一小部分改变图像的饱和度，从而影响颜色的强度。可用于模拟不同的环境条件。 |
-| [`hsv_v`](https://docs.ultralytics.com/zh/guides/yolo-data-augmentation/#brightness-adjustment-hsv_v) | `float` | `0.4`         | `detect`, `segment`, `pose`, `obb`, `classify` | `0.0 - 1.0`   | 通过一小部分修改图像的明度（亮度），帮助模型在各种光照条件下表现良好。 |
-| [`degrees`](https://docs.ultralytics.com/zh/guides/yolo-data-augmentation/#rotation-degrees) | `float` | `0.0`         | `detect`, `segment`, `pose`, `obb`             | `0.0 - 180`   | 在指定的角度范围内随机旋转图像，提高模型识别各种方向物体的能力。 |
-| [`translate`](https://docs.ultralytics.com/zh/guides/yolo-data-augmentation/#translation-translate) | `float` | `0.1`         | `detect`, `segment`, `pose`, `obb`             | `0.0 - 1.0`   | 通过图像尺寸的一小部分在水平和垂直方向上平移图像，帮助学习检测部分可见的物体。 |
-| [`scale`](https://docs.ultralytics.com/zh/guides/yolo-data-augmentation/#scale-scale) | `float` | `0.5`         | `detect`, `segment`, `pose`, `obb`, `classify` | `>=0.0`       | 通过增益因子缩放图像，模拟物体与相机的不同距离。             |
-| [`shear`](https://docs.ultralytics.com/zh/guides/yolo-data-augmentation/#shear-shear) | `float` | `0.0`         | `detect`, `segment`, `pose`, `obb`             | `-180 - +180` | 按指定的角度错切图像，模仿从不同角度观察物体的效果。         |
-| [`perspective`](https://docs.ultralytics.com/zh/guides/yolo-data-augmentation/#perspective-perspective) | `float` | `0.0`         | `detect`, `segment`, `pose`, `obb`             | `0.0 - 0.001` | 对图像应用随机透视变换，增强模型理解 3D 空间中物体的能力。   |
-| [`flipud`](https://docs.ultralytics.com/zh/guides/yolo-data-augmentation/#flip-up-down-flipud) | `float` | `0.0`         | `detect`, `segment`, `pose`, `obb`, `classify` | `0.0 - 1.0`   | 以指定的概率将图像上下翻转，增加数据变化，而不影响物体的特征。 |
-| [`fliplr`](https://docs.ultralytics.com/zh/guides/yolo-data-augmentation/#flip-left-right-fliplr) | `float` | `0.5`         | `detect`, `segment`, `pose`, `obb`, `classify` | `0.0 - 1.0`   | 以指定的概率将图像左右翻转，有助于学习对称物体并增加数据集的多样性。 |
-| [`bgr`](https://docs.ultralytics.com/zh/guides/yolo-data-augmentation/#bgr-channel-swap-bgr) | `float` | `0.0`         | `detect`, `segment`, `pose`, `obb`             | `0.0 - 1.0`   | 以指定的概率将图像通道从 RGB 翻转到 BGR，有助于提高对不正确通道排序的鲁棒性。 |
-| [`mosaic`](https://docs.ultralytics.com/zh/guides/yolo-data-augmentation/#mosaic-mosaic) | `float` | `1.0`         | `detect`, `segment`, `pose`, `obb`             | `0.0 - 1.0`   | 将四个训练图像组合成一个，模拟不同的场景组成和物体交互。对于复杂的场景理解非常有效。 |
-| [`mixup`](https://docs.ultralytics.com/zh/guides/yolo-data-augmentation/#mixup-mixup) | `float` | `0.0`         | `detect`, `segment`, `pose`, `obb`             | `0.0 - 1.0`   | 混合两个图像及其标签，创建一个合成图像。通过引入标签噪声和视觉变化，增强模型的泛化能力。 |
-| [`cutmix`](https://docs.ultralytics.com/zh/guides/yolo-data-augmentation/#cutmix-cutmix) | `float` | `0.0`         | `detect`, `segment`, `pose`, `obb`             | `0.0 - 1.0`   | 组合两张图像的部分区域，创建局部混合，同时保持清晰的区域。通过创建遮挡场景来增强模型的鲁棒性。 |
-| [`copy_paste`](https://docs.ultralytics.com/zh/guides/yolo-data-augmentation/#copy-paste-copy_paste) | `float` | `0.0`         | `segment`                                      | `0.0 - 1.0`   | 跨图像复制和粘贴对象以增加对象实例。                         |
-| [`copy_paste_mode`](https://docs.ultralytics.com/zh/guides/yolo-data-augmentation/#copy-paste-mode-copy_paste_mode) | `str`   | `flip`        | `segment`                                      | -             | 指定 `copy-paste` 要使用的策略。选项包括 `'flip'` 和 `'mixup'`. |
-| [`auto_augment`](https://docs.ultralytics.com/zh/guides/yolo-data-augmentation/#auto-augment-auto_augment) | `str`   | `randaugment` | `classify`                                     | -             | 应用预定义的增强策略（`'randaugment'`, `'autoaugment'`或 `'augmix'`）通过视觉多样性来增强模型性能。 |
-| [`erasing`](https://docs.ultralytics.com/zh/guides/yolo-data-augmentation/#random-erasing-erasing) | `float` | `0.4`         | `classify`                                     | `0.0 - 0.9`   | 在训练期间随机擦除图像区域，以鼓励模型关注不太明显的特征。   |
+| [`hsv_h`](https://docs.ultralytics.com/zh/guides/yolo-data-augmentation//#hue-adjustment-hsv_h) | `float` | `0.015`       | `detect`, `segment`, `pose`, `obb`, `classify` | `0.0 - 1.0`   | 通过色轮的一小部分调整图像的色调，从而引入颜色变化。帮助模型在不同的光照条件下进行泛化。 |
+| [`hsv_s`](https://docs.ultralytics.com/zh/guides/yolo-data-augmentation//#saturation-adjustment-hsv_s) | `float` | `0.7`         | `detect`, `segment`, `pose`, `obb`, `classify` | `0.0 - 1.0`   | 通过一小部分改变图像的饱和度，从而影响颜色的强度。可用于模拟不同的环境条件。 |
+| [`hsv_v`](https://docs.ultralytics.com/zh/guides/yolo-data-augmentation//#brightness-adjustment-hsv_v) | `float` | `0.4`         | `detect`, `segment`, `pose`, `obb`, `classify` | `0.0 - 1.0`   | 通过一小部分修改图像的明度（亮度），帮助模型在各种光照条件下表现良好。 |
+| [`degrees`](https://docs.ultralytics.com/zh/guides/yolo-data-augmentation//#rotation-degrees) | `float` | `0.0`         | `detect`, `segment`, `pose`, `obb`             | `0.0 - 180`   | 在指定的角度范围内随机旋转图像，提高模型识别各种方向物体的能力。 |
+| [`translate`](https://docs.ultralytics.com/zh/guides/yolo-data-augmentation//#translation-translate) | `float` | `0.1`         | `detect`, `segment`, `pose`, `obb`             | `0.0 - 1.0`   | 将图像按图像尺寸的一小部分进行水平和垂直平移，有助于学习检测部分可见的物体。 |
+| [`scale`](https://docs.ultralytics.com/zh/guides/yolo-data-augmentation//#scale-scale) | `float` | `0.5`         | `detect`, `segment`, `pose`, `obb`, `classify` | `0 - 1`       | 通过增益因子缩放图像，模拟物体与相机的不同距离。             |
+| [`shear`](https://docs.ultralytics.com/zh/guides/yolo-data-augmentation//#shear-shear) | `float` | `0.0`         | `detect`, `segment`, `pose`, `obb`             | `-180 - +180` | 按指定的角度错切图像，模仿从不同角度观察物体的效果。         |
+| [`perspective`](https://docs.ultralytics.com/zh/guides/yolo-data-augmentation//#perspective-perspective) | `float` | `0.0`         | `detect`, `segment`, `pose`, `obb`             | `0.0 - 0.001` | 对图像应用随机透视变换，增强模型理解 3D 空间中物体的能力。   |
+| [`flipud`](https://docs.ultralytics.com/zh/guides/yolo-data-augmentation//#flip-up-down-flipud) | `float` | `0.0`         | `detect`, `segment`, `pose`, `obb`, `classify` | `0.0 - 1.0`   | 以指定的概率将图像上下翻转，增加数据变化，而不影响物体的特征。 |
+| [`fliplr`](https://docs.ultralytics.com/zh/guides/yolo-data-augmentation//#flip-left-right-fliplr) | `float` | `0.5`         | `detect`, `segment`, `pose`, `obb`, `classify` | `0.0 - 1.0`   | 以指定的概率将图像左右翻转，有助于学习对称物体并增加数据集的多样性。 |
+| [`bgr`](https://docs.ultralytics.com/zh/guides/yolo-data-augmentation//#bgr-channel-swap-bgr) | `float` | `0.0`         | `detect`, `segment`, `pose`, `obb`             | `0.0 - 1.0`   | 以指定的概率将图像通道从 RGB 翻转到 BGR，有助于提高对不正确通道排序的鲁棒性。 |
+| [`mosaic`](https://docs.ultralytics.com/zh/guides/yolo-data-augmentation//#mosaic-mosaic) | `float` | `1.0`         | `detect`, `segment`, `pose`, `obb`             | `0.0 - 1.0`   | 将四个训练图像组合成一个，模拟不同的场景组成和物体交互。对于复杂的场景理解非常有效。 |
+| [`mixup`](https://docs.ultralytics.com/zh/guides/yolo-data-augmentation//#mixup-mixup) | `float` | `0.0`         | `detect`, `segment`, `pose`, `obb`             | `0.0 - 1.0`   | 混合两个图像及其标签，创建一个合成图像。通过引入标签噪声和视觉变化，增强模型的泛化能力。 |
+| [`cutmix`](https://docs.ultralytics.com/zh/guides/yolo-data-augmentation//#cutmix-cutmix) | `float` | `0.0`         | `detect`, `segment`, `pose`, `obb`             | `0.0 - 1.0`   | 组合两张图像的部分区域，创建局部混合，同时保持清晰的区域。通过创建遮挡场景来增强模型的鲁棒性。 |
+| [`copy_paste`](https://docs.ultralytics.com/zh/guides/yolo-data-augmentation//#copy-paste-copy_paste) | `float` | `0.0`         | `segment`                                      | `0.0 - 1.0`   | 跨图像复制和粘贴对象以增加对象实例。                         |
+| [`copy_paste_mode`](https://docs.ultralytics.com/zh/guides/yolo-data-augmentation//#copy-paste-mode-copy_paste_mode) | `str`   | `flip`        | `segment`                                      | -             | 指定 `copy-paste` 要使用的策略。选项包括 `'flip'` 和 `'mixup'`. |
+| [`auto_augment`](https://docs.ultralytics.com/zh/guides/yolo-data-augmentation//#auto-augment-auto_augment) | `str`   | `randaugment` | `classify`                                     | -             | 应用预定义的增强策略（`'randaugment'`, `'autoaugment'`或 `'augmix'`）通过视觉多样性来增强模型性能。 |
+| [`erasing`](https://docs.ultralytics.com/zh/guides/yolo-data-augmentation//#random-erasing-erasing) | `float` | `0.4`         | `classify`                                     | `0.0 - 1.0`   | 在训练期间随机擦除图像区域，以鼓励模型关注不太明显的特征。   |
+| [`augmentations`](https://docs.ultralytics.com/zh/guides/yolo-data-augmentation//#custom-albumentations-transforms-augmentations) | `list`  | ``            | `detect`, `segment`, `pose`, `obb`             | -             | 用于高级数据增强的自定义 Albumentations 变换（仅限 Python API）。接受变换对象列表，以满足专门的增强需求。 |
 
 ## Example
 
@@ -719,6 +726,7 @@ from ultralytics import YOLO, settings
 
 settings.update(
     {
+        "runs_dir": "./runs",
         "tensorboard": True,
     }
 )
@@ -761,10 +769,11 @@ results = model.train(
     optimizer="auto",
     seed=0,
     deterministic=True,
+    verbose=True,
     single_cls=False,
     classes=None,  # list[int] | None, 指定要训练的类 ID 列表。可用于在训练期间过滤掉并仅关注某些类。
     rect=False,
-    multi_scale=False,
+    multi_scale=0.0,
     cos_lr=True,
     close_mosaic=10,
     resume=False,
@@ -782,6 +791,7 @@ results = model.train(
     val=True,
     plots=False,
     compile=False,
+    max_det=300,
     # below are image enhance hyperparameters
     hsv_h=0.015,
     hsv_s=0.7,
@@ -801,6 +811,7 @@ results = model.train(
     copy_paste_mode="flip",
     auto_augment="randaugment",
     erasing=0.4,
+    augmentations="",
     cfg=None,
 )
 ```
@@ -996,35 +1007,38 @@ yolo detect val model=path/to/best.pt # val custom model
 
 ## 参数
 
-在验证 YOLO 模型时，可以微调多个参数以优化评估过程。这些参数控制着输入图像大小、批量处理和性能阈值等方面。以下是每个参数的详细分解，旨在帮助您有效地自定义验证设置。
+在验证 YOLO 模型时，可以微调多个参数以优化评估过程。这些参数控制着输入图像大小、批量处理和性能阈值等方面。
+
+以下是每个参数的详细分解，旨在帮助您有效地自定义验证设置。
 
 | 参数           | 类型            | 默认值  | 描述                                                         |
 | :------------- | :-------------- | :------ | :----------------------------------------------------------- |
-| `data`         | `str`           | `None`  | 指定数据集配置文件（例如， `coco8.yaml`).该文件应包括 [验证数据的路径](https://www.ultralytics.com/glossary/validation-data). |
+| `data`         | `str`           | `None`  | 指定数据集配置文件（例如， `coco8.yaml`）。此文件应包含指向 [验证数据的路径](https://www.ultralytics.com/glossary/validation-data). |
 | `imgsz`        | `int`           | `640`   | 定义输入图像的大小。所有图像在处理前都会调整为此尺寸。较大的尺寸可能会提高小目标的准确性，但会增加计算时间。 |
 | `batch`        | `int`           | `16`    | 设置每个批次的图像数量。较高的值能更有效地利用 GPU 内存，但需要更多的 VRAM。根据可用的硬件资源进行调整。 |
 | `save_json`    | `bool`          | `False` | 可视化参数： `True`，将结果保存到 JSON 文件中，以便进一步分析、与其他工具集成或提交到 COCO 等评估服务器。 |
 | `conf`         | `float`         | `0.001` | 设置检测的最小置信度阈值。较低的值会提高召回率，但也可能引入更多的假阳性。在[验证](https://docs.ultralytics.com/zh/modes/val/)期间用于计算精确率-召回率曲线。 |
 | `iou`          | `float`         | `0.7`   | 设置[交并比（Intersection Over Union）](https://www.ultralytics.com/glossary/intersection-over-union-iou)阈值，用于[非极大值抑制（Non-Maximum Suppression）](https://www.ultralytics.com/glossary/non-maximum-suppression-nms)。控制重复检测的消除。 |
 | `max_det`      | `int`           | `300`   | 限制每幏图像的最大检测数量。在密集场景中非常有用，可防止过度检测和管理计算资源。 |
-| `half`         | `bool`          | `True`  | 启用半[精度](https://www.ultralytics.com/glossary/precision) (FP16) 计算，从而减少内存使用量，并可能在对[准确性](https://www.ultralytics.com/glossary/accuracy)影响最小的情况下提高速度。 |
+| `half`         | `bool`          | `False` | 启用半[精度](https://www.ultralytics.com/glossary/precision) (FP16) 计算，从而减少内存使用量，并可能在对[准确性](https://www.ultralytics.com/glossary/accuracy)影响最小的情况下提高速度。 |
 | `device`       | `str`           | `None`  | 指定验证的设备（`cpu`, `cuda:0`，等等）。当 `None`，自动选择最佳可用设备。多个 CUDA 设备可以用逗号分隔指定。 |
 | `dnn`          | `bool`          | `False` | 可视化参数： `True`，使用 [OpenCV](https://www.ultralytics.com/glossary/opencv) DNN 模块进行 ONNX 模型推理，从而提供了一种替代 [PyTorch](https://www.ultralytics.com/glossary/pytorch) 推理方法。 |
-| `plots`        | `bool`          | `False` | 当设置为 `True`，生成并保存预测与真实值的对比图、混淆矩阵和 PR 曲线，以便对模型性能进行可视化评估。 |
-| `classes`      | `list[int]`     | `None`  | 指定要训练的类 ID 列表。可用于在评估期间过滤并仅关注某些类。 |
+| `plots`        | `bool`          | `True`  | 当设置为 `True`，生成并保存预测与真实值的对比图、混淆矩阵和 PR 曲线，以便对模型性能进行可视化评估。 |
+| `classes`      | `list[int]`     | `None`  | 指定要评估的类别 ID 列表。这对于在评估期间筛选并仅关注某些类别非常有用。 |
 | `rect`         | `bool`          | `True`  | 可视化参数： `True`，使用矩形推理进行批处理，减少填充，并通过以原始宽高比处理图像来潜在地提高速度和效率。 |
-| `split`        | `str`           | `'val'` | 确定用于验证的数据集分割（`val`, `test`或 `train`）。 允许灵活选择数据段进行性能评估。 |
+| `split`        | `str`           | `'val'` | 确定用于验证的数据集分割（`val`, `test`或 `train`）。允许灵活选择数据段以进行性能评估。 |
 | `project`      | `str`           | `None`  | 用于保存验证输出的项目目录的名称。有助于组织来自不同实验或模型的结果。 |
 | `name`         | `str`           | `None`  | 验证运行的名称。用于在项目文件夹中创建一个子目录，用于存储验证日志和输出。 |
-| `verbose`      | `bool`          | `False` | 可视化参数： `True`，在验证过程中显示详细信息，包括每个类别的指标、批次进度和其他调试信息。 |
+| `verbose`      | `bool`          | `True`  | 可视化参数： `True`，在验证过程中显示详细信息，包括每个类别的指标、批次进度和其他调试信息。 |
 | `save_txt`     | `bool`          | `False` | 可视化参数： `True`，将检测结果保存在文本文件中，每个图像对应一个文件，可用于进一步分析、自定义后处理或与其他系统集成。 |
 | `save_conf`    | `bool`          | `False` | 可视化参数： `True`，在保存的文本文件中包含置信度值，当 `save_txt` 已启用，提供更详细的输出以供分析和过滤。 |
 | `workers`      | `int`           | `8`     | 用于数据加载的工作线程数。较高的值可以加快数据预处理速度，但可能会增加 CPU 使用率。设置为 0 使用主线程，这在某些环境中可能更稳定。 |
 | `augment`      | `bool`          | `False` | 启用测试时增强（TTA），通过对输入的转换版本运行推理，从而可能提高检测精度，但会牺牲推理速度。 |
-| `agnostic_nms` | `bool`          | `False` | 启用与类别无关的 [非极大值抑制](https://www.ultralytics.com/glossary/non-maximum-suppression-nms)，它合并重叠的框，而不管其预测的类别如何。对于以实例为中心的应用程序很有用。 |
+| `agnostic_nms` | `bool`          | `False` | 启用与类别无关[的非最大抑制](https://www.ultralytics.com/glossary/non-maximum-suppression-nms)，该功能可合并重叠的检测框，而不考虑其预测类别。适用于以实例为中心的应用场景。对于端到端模型（如YOLOv26、YOLOv10），此功能仅防止同一检测结果出现多个类别标签（IoU.IoU重复检测），不会对不同检测框执行IoU抑制操作。 |
 | `single_cls`   | `bool`          | `False` | 在验证期间将所有类别视为单一类别。这对于评估二元检测任务中的模型性能或类别区分并不重要时非常有用。 |
-| `visualize`    | `bool`          | `False` | 可视化每张图像的真值、真正例、假正例和假反例。 有助于调试和模型解释。 |
+| `visualize`    | `bool`          | `False` | 可视化每张图像的真值、真阳性、假阳性以及假阴性。有助于调试和模型解释。 |
 | `compile`      | `bool` 或 `str` | `False` | 启用 PyTorch 2.x `torch.compile` 使用以下方式进行图形编译 `backend='inductor'`。接受 `True` → `"default"`, `False` → 禁用，或字符串模式，例如 `"default"`, `"reduce-overhead"`, `"max-autotune-no-cudagraphs"`。如果不支持，则会发出警告并回退到 Eager 模式。 |
+| `end2end`      | `bool`          | `None`  | 覆盖支持NMS推理的YOLO （YOLO26、YOLOv10）中的端到端模式。将其设置为 `False` 允许您使用传统的NMS 进行验证，同时还能利用 `iou` 参数生成。 |
 
 ### default confidence threshold = 0.001
 
@@ -1076,12 +1090,14 @@ metrics: DetMetrics = model.val(
     max_det=300,
     half=False,
     device=0,
+    dnn=False,
     plots=True,
     classes=None,  # list[int] | None, 指定要训练的类 ID 列表。可用于在评估期间过滤并仅关注某些类。
     rect=True,
+    split="val",
     project=project,
     name=name,
-    verbose=False,
+    verbose=True,
     save_txt=False,
     save_conf=False,
     workers=8,
@@ -1090,6 +1106,7 @@ metrics: DetMetrics = model.val(
     single_cls=False,
     visualize=False,
     compile=False,
+    end2end=None,
 )
 
 # print(f"metrics:\n{metrics}\n")
@@ -1189,7 +1206,7 @@ for result in results:
 | glob ✅                                                | `'path/*.jpg'`                             | `str`           | 用于匹配多个文件的Glob模式。使用 `*` 字符作为通配符。        |
 | YouTube ✅                                             | `'https://youtu.be/LNwODJXcvt4'`           | `str`           | YouTube视频的URL。                                           |
 | 流 ✅                                                  | `'rtsp://example.com/media.mp4'`           | `str`           | 用于流媒体协议的URL，例如RTSP、RTMP、TCP或IP地址。           |
-| 多流 ✅                                                | `'list.streams'`                           | `str` 或 `Path` | `*.streams` 包含每行一个流 URL 的文本文件，例如，8 个流将以 batch-size 8 运行。 |
+| 多流 ✅                                                | `'list.streams'`                           | `str` 或 `Path` | `*.streams` 文本文件，每行包含一个流 URL，即 8 个流将以批处理大小为 8 运行。 |
 | 网络摄像头 ✅                                          | `0`                                        | `int`           | 用于运行推理的已连接摄像头设备的索引。                       |
 
 以下是使用每种来源类型的代码示例：
@@ -1468,18 +1485,18 @@ model.predict("https://ultralytics.com/images/bus.jpg", save=True, imgsz=320, co
 | :-------------- | :--------------- | :--------------------- | :----------------------------------------------------------- |
 | `source`        | `str`            | `'ultralytics/assets'` | 指定推理的数据源。可以是图像路径、视频文件、目录、URL 或实时馈送的设备 ID。 支持多种格式和来源，从而可以在[不同类型的输入](https://docs.ultralytics.com/zh/modes/predict/#inference-sources)上灵活应用。 |
 | `conf`          | `float`          | `0.25`                 | 设置检测的最小置信度阈值。 将忽略置信度低于此阈值的检测到的对象。 调整此值有助于减少误报。 |
-| `iou`           | `float`          | `0.7`                  | 用于非极大值抑制 (NMS) 的 [Intersection Over Union](https://www.ultralytics.com/glossary/intersection-over-union-iou) (IoU) 阈值。较低的值会通过消除重叠的框来减少检测结果，这对于减少重复项很有用。 |
+| `iou`           | `float`          | `0.7`                  | [交并比（IoU）](https://www.ultralytics.com/glossary/intersection-over-union-iou) 是用于非极大值抑制（NMS）的阈值。较低的值会通过消除重叠框来减少检测数量，这对于减少重复项很有用。 |
 | `imgsz`         | `int` 或 `tuple` | `640`                  | 定义推理的图像大小。可以是一个整数 `640` 表示正方形调整大小，也可以是 (height, width) 元组。适当的大小调整可以提高检测 [准确性](https://www.ultralytics.com/glossary/accuracy) 和处理速度。 |
 | `rect`          | `bool`           | `True`                 | 如果启用，则对图像较短的一边进行最小填充，直到可以被步长整除，以提高推理速度。如果禁用，则在推理期间将图像填充为正方形。 |
 | `half`          | `bool`           | `False`                | 启用半[精度](https://www.ultralytics.com/glossary/precision) (FP16) 推理，这可以加快在支持的 GPU 上的模型推理速度，同时对准确性的影响极小。 |
 | `device`        | `str`            | `None`                 | 指定用于推理的设备（例如， `cpu`, `cuda:0` 或 `0`）。允许用户在 CPU、特定 GPU 或其他计算设备之间进行选择，以执行模型。 |
-| `batch`         | `int`            | `1`                    | 指定推理的批处理大小（仅在源为以下情况时有效： [目录、视频文件或 `.txt` 文件](https://docs.ultralytics.com/zh/modes/predict/#inference-sources))。更大的批处理大小可以提供更高的吞吐量，从而缩短推理所需的总时间。 |
-| `max_det`       | `int`            | `300`                  | 每张图像允许的最大检测数量。限制模型在单次推理中可以检测到的对象总数，防止在密集场景中产生过多的输出。 |
+| `batch`         | `int`            | `1`                    | 指定推理的批处理大小（仅在源为以下情况时有效： [一个目录、视频文件，或 `.txt` 文件](https://docs.ultralytics.com/zh/modes/predict/#inference-sources))。更大的批处理大小可以提供更高的吞吐量，从而缩短推理所需的总时间。 |
+| `max_det`       | `int`            | `300`                  | 每张图像允许的最大 detect 数量。限制模型在单次推理中可以 detect 的对象总数，防止在密集场景中产生过多输出。 |
 | `vid_stride`    | `int`            | `1`                    | 视频输入的帧步长。允许跳过视频中的帧，以加快处理速度，但会降低时间分辨率。值为 1 时处理每一帧，值越高跳过的帧越多。 |
 | `stream_buffer` | `bool`           | `False`                | 确定是否为视频流排队传入帧。如果 `False`，旧帧会被丢弃以适应新帧（针对实时应用进行了优化）。如果 `True`，在缓冲区中对新帧进行排队，确保不跳过任何帧，但如果推理 FPS 低于流 FPS，则会导致延迟。 |
 | `visualize`     | `bool`           | `False`                | 激活推理期间模型特征的可视化，从而深入了解模型正在“看到”的内容。这对于调试和模型解释非常有用。 |
 | `augment`       | `bool`           | `False`                | 启用测试时增强 (TTA) 进行预测，可能会提高检测的鲁棒性，但会降低推理速度。 |
-| `agnostic_nms`  | `bool`           | `False`                | 启用与类别无关的非极大值抑制 (NMS)，它会合并不同类别的重叠框。在类别重叠很常见的多类别检测场景中非常有用。 |
+| `agnostic_nms`  | `bool`           | `False`                | 启用类无关的非最大抑制（NMS），该功能可合并不同类别的重叠检测框。在多类别检测场景中尤为实用，因这类场景中类别重叠现象普遍存在。 对于端到端模型（如YOLOv2、YOLOv10），该功能仅防止同一检测结果出现多重类别标签（IoU.IoU的重复检测），不会对不同检测框执行IoU抑制操作。 |
 | `classes`       | `list[int]`      | `None`                 | 将预测结果筛选到一组类别 ID。只会返回属于指定类别的检测结果。这对于专注于多类别检测任务中的相关对象非常有用。 |
 | `retina_masks`  | `bool`           | `False`                | 返回高分辨率分割掩码。返回的掩码（`masks.data`）如果启用，将与原始图像大小匹配。如果禁用，它们将具有推理期间使用的图像大小。 |
 | `embed`         | `list[int]`      | `None`                 | 指定从中提取特征向量或 [embeddings](https://www.ultralytics.com/glossary/embeddings) 的层。对于诸如聚类或相似性搜索之类的下游任务非常有用。 |
@@ -1488,13 +1505,14 @@ model.predict("https://ultralytics.com/images/bus.jpg", save=True, imgsz=320, co
 | `stream`        | `bool`           | `False`                | 通过返回 Results 对象的生成器而不是一次将所有帧加载到内存中，从而为长视频或大量图像启用内存高效处理。 |
 | `verbose`       | `bool`           | `True`                 | 控制是否在终端中显示详细的推理日志，从而提供有关预测过程的实时反馈。 |
 | `compile`       | `bool` 或 `str`  | `False`                | 启用 PyTorch 2.x `torch.compile` 使用以下方式进行图形编译 `backend='inductor'`。接受 `True` → `"default"`, `False` → 禁用，或字符串模式，例如 `"default"`, `"reduce-overhead"`, `"max-autotune-no-cudagraphs"`。如果不支持，则会发出警告并回退到 Eager 模式。 |
+| `end2end`       | `bool`           | `None`                 | 覆盖支持NMS推理的YOLO （YOLO26、YOLOv10）中的端到端模式。将其设置为 `False` 允许您使用传统的NMS 进行预测，同时还能利用 `iou` 参数生成。 |
 
 可视化参数：
 
 | 参数          | 类型          | 默认值          | 描述                                                         |
 | :------------ | :------------ | :-------------- | :----------------------------------------------------------- |
 | `show`        | `bool`        | `False`         | 可视化参数： `True`，则在窗口中显示带注释的图像或视频。这对于开发或测试期间的即时视觉反馈非常有用。 |
-| `save`        | `bool`        | `False or True` | 启用将带注释的图像或视频保存到文件。这对于文档编制、进一步分析或共享结果非常有用。使用 CLI 时默认为 True，在 python 中使用时默认为 False。 |
+| `save`        | `bool`        | `False or True` | 启用将标注的图像或视频保存到文件。适用于文档编制、进一步分析或结果共享。在使用CLI时默认为True，在Python中使用时默认为False。 |
 | `save_frames` | `bool`        | `False`         | 处理视频时，将各个帧另存为图像。这对于提取特定帧或进行详细的逐帧分析非常有用。 |
 | `save_txt`    | `bool`        | `False`         | 以文本文件格式保存检测结果，格式如下： `[class] [x_center] [y_center] [width] [height] [confidence]`。 有助于与其他分析工具集成。 |
 | `save_conf`   | `bool`        | `False`         | 在保存的文本文件中包含置信度分数。 增强了可用于后处理和分析的细节。 |
@@ -1502,7 +1520,7 @@ model.predict("https://ultralytics.com/images/bus.jpg", save=True, imgsz=320, co
 | `show_labels` | `bool`        | `True`          | 在可视化输出中显示每个检测的标签。 能够立即理解检测到的对象。 |
 | `show_conf`   | `bool`        | `True`          | 在标签旁边显示每个检测的置信度分数。 可以深入了解模型对每次检测的确定性。 |
 | `show_boxes`  | `bool`        | `True`          | 在检测到的对象周围绘制边界框。 这对于在图像或视频帧中以可视方式识别和定位对象至关重要。 |
-| `line_width`  | `None or int` | `None`          | 指定边界框的线条宽度。 如果 `None`，则线条宽度会根据图像大小自动调整。 提供视觉自定义以提高清晰度。 |
+| `line_width`  | `int or None` | `None`          | 指定边界框的线条宽度。 如果 `None`，则线条宽度会根据图像大小自动调整。 提供视觉自定义以提高清晰度。 |
 
 ## 图像和视频格式
 
@@ -1514,12 +1532,16 @@ YOLO11 支持各种图像和视频格式，如 [ultralytics/data/utils.py](https
 
 > 注意
 >
-> HEIC 图像仅支持推理，不支持训练。
+> HEIC/HEIF格式需要 `pi-heif`该组件会在首次使用时自动安装。Pillow原生支持AVIF格式。
 
 | 图像后缀 | 示例预测命令                     | 参考                                                         |
 | :------- | :------------------------------- | :----------------------------------------------------------- |
+| `.avif`  | `yolo predict source=image.avif` | [AV1图像文件格式](https://en.wikipedia.org/wiki/AVIF)        |
 | `.bmp`   | `yolo predict source=image.bmp`  | [Microsoft BMP 文件格式](https://en.wikipedia.org/wiki/BMP_file_format) |
 | `.dng`   | `yolo predict source=image.dng`  | [Adobe DNG](https://en.wikipedia.org/wiki/Digital_Negative)  |
+| `.heic`  | `yolo predict source=image.heic` | [高效率图像格式](https://en.wikipedia.org/wiki/HEIF)         |
+| `.heif`  | `yolo predict source=image.heif` | [高效率图像格式](https://en.wikipedia.org/wiki/HEIF)         |
+| `.jp2`   | `yolo predict source=image.jp2`  | [JPEG 2000](https://en.wikipedia.org/wiki/JPEG_2000)         |
 | `.jpeg`  | `yolo predict source=image.jpeg` | [JPEG](https://en.wikipedia.org/wiki/JPEG)                   |
 | `.jpg`   | `yolo predict source=image.jpg`  | [JPEG](https://en.wikipedia.org/wiki/JPEG)                   |
 | `.mpo`   | `yolo predict source=image.mpo`  | [多图片对象](https://fileinfo.com/extension/mpo)             |
@@ -1527,8 +1549,6 @@ YOLO11 支持各种图像和视频格式，如 [ultralytics/data/utils.py](https
 | `.tif`   | `yolo predict source=image.tif`  | [标签图像文件格式](https://en.wikipedia.org/wiki/TIFF)       |
 | `.tiff`  | `yolo predict source=image.tiff` | [标签图像文件格式](https://en.wikipedia.org/wiki/TIFF)       |
 | `.webp`  | `yolo predict source=image.webp` | [WebP](https://en.wikipedia.org/wiki/WebP)                   |
-| `.pfm`   | `yolo predict source=image.pfm`  | [便携式浮点图](https://en.wikipedia.org/wiki/Netpbm#File_formats) |
-| `.HEIC`  | `yolo predict source=image.HEIC` | [高效率图像格式](https://en.wikipedia.org/wiki/HEIF)         |
 
 ### 视频
 
@@ -1589,7 +1609,7 @@ results = model(
 
 | 方法          | 返回类型               | 描述                                                         |
 | :------------ | :--------------------- | :----------------------------------------------------------- |
-| `update()`    | `None`                 | 使用新的检测数据（框、掩码、概率、obb、关键点）更新 Results 对象。 |
+| `update()`    | `None`                 | 使用新的检测数据（边界框、掩码、概率、obb、关键点）更新 Results 对象。 |
 | `cpu()`       | `Results`              | 返回 Results 对象的副本，其中所有 tensor 都已移动到 CPU 内存。 |
 | `numpy()`     | `Results`              | 返回 Results 对象的副本，其中所有 tensor 都已转换为 numpy 数组。 |
 | `cuda()`      | `Results`              | 返回 Results 对象的副本，其中所有 tensor 都已移动到 GPU 内存。 |
@@ -1628,19 +1648,19 @@ for r in results:
 
 以下是 `Boxes` 类的方法和属性表，包括它们的名称、类型和描述：
 
-| 名称      | 类型                  | 描述                                           |
-| :-------- | :-------------------- | :--------------------------------------------- |
-| `cpu()`   | 方法                  | 将对象移动到 CPU 内存。                        |
-| `numpy()` | 方法                  | 将对象转换为 numpy 数组。                      |
-| `cuda()`  | 方法                  | 将对象移动到 CUDA 内存。                       |
-| `to()`    | 方法                  | 将对象移动到指定的设备。                       |
-| `xyxy`    | 属性 (`torch.Tensor`) | 以 xyxy 格式返回边界框。                       |
-| `conf`    | 属性 (`torch.Tensor`) | 返回边界框的置信度值。                         |
-| `cls`     | 属性 (`torch.Tensor`) | 返回边界框的类别值。                           |
-| `id`      | 属性 (`torch.Tensor`) | 返回边界框的跟踪 ID（如果可用）。              |
-| `xywh`    | 属性 (`torch.Tensor`) | 以 xywh 格式返回边界框。                       |
-| `xyxyn`   | 属性 (`torch.Tensor`) | 返回以原始图像大小归一化的 xyxy 格式的边界框。 |
-| `xywhn`   | 属性 (`torch.Tensor`) | 返回以原始图像大小归一化的 xywh 格式的边界框。 |
+| 名称      | 类型                  | 描述                                         |
+| :-------- | :-------------------- | :------------------------------------------- |
+| `cpu()`   | 方法                  | 将对象移动到 CPU 内存。                      |
+| `numpy()` | 方法                  | 将对象转换为 numpy 数组。                    |
+| `cuda()`  | 方法                  | 将对象移动到 CUDA 内存。                     |
+| `to()`    | 方法                  | 将对象移动到指定的设备。                     |
+| `xyxy`    | 属性 (`torch.Tensor`) | 返回 xyxy 格式边界框。                       |
+| `conf`    | 属性 (`torch.Tensor`) | 返回边界框的置信度值。                       |
+| `cls`     | 属性 (`torch.Tensor`) | 返回边界框的类别值。                         |
+| `id`      | 属性 (`torch.Tensor`) | 返回边界框的跟踪 ID（如果可用）。            |
+| `xywh`    | 属性 (`torch.Tensor`) | 返回 xywh 格式边界框。                       |
+| `xyxyn`   | 属性 (`torch.Tensor`) | 返回按原始图像尺寸归一化的 xyxy 格式边界框。 |
+| `xywhn`   | 属性 (`torch.Tensor`) | 返回按原始图像尺寸归一化的 xywh 格式边界框。 |
 
 有关更多详细信息，请参见 [`Boxes` 类文档](https://docs.ultralytics.com/zh/reference/engine/results/#ultralytics.engine.results.Boxes).
 
@@ -1769,7 +1789,7 @@ for r in results:
 | `conf`      | 属性 (`torch.Tensor`) | 返回边界框的置信度值。                         |
 | `cls`       | 属性 (`torch.Tensor`) | 返回边界框的类别值。                           |
 | `id`        | 属性 (`torch.Tensor`) | 返回边界框的跟踪 ID（如果可用）。              |
-| `xyxy`      | 属性 (`torch.Tensor`) | 以 xyxy 格式返回水平框。                       |
+| `xyxy`      | 属性 (`torch.Tensor`) | 返回 xyxy 格式的水平边界框。                   |
 | `xywhr`     | 属性 (`torch.Tensor`) | 以 xywhr 格式返回旋转框。                      |
 | `xyxyxyxy`  | 属性 (`torch.Tensor`) | 以 xyxyxyxy 格式返回旋转框。                   |
 | `xyxyxyxyn` | 属性 (`torch.Tensor`) | 返回由图像大小归一化的 xyxyxyxy 格式的旋转框。 |
@@ -1927,7 +1947,7 @@ results = model(
     imgsz=640,
     rect=True,
     half=False,
-    device="cpu",
+    device=0,
     batch=1,
     max_det=300,
     vid_stride=1,
@@ -1937,11 +1957,14 @@ results = model(
     agnostic_nms=False,
     classes=None,  # list[int] | None, 将预测结果筛选到一组类别 ID。只会返回属于指定类别的检测结果。这对于专注于多类别检测任务中的相关对象非常有用。
     retina_masks=False,
+    embed=None,
     project=project,
     name=name,
     stream=True,
     verbose=True,
     compile=False,
+    end2end=None,
+    # below are visualize parameters
     show=False,
     save=True,
     save_frames=False,
@@ -2020,7 +2043,7 @@ results = model(
     imgsz=640,
     rect=True,
     half=False,
-    device="cpu",
+    device=0,
     batch=1,
     max_det=300,
     vid_stride=1,
@@ -2030,11 +2053,14 @@ results = model(
     agnostic_nms=False,
     classes=None,  # list[int] | None, 将预测结果筛选到一组类别 ID。只会返回属于指定类别的检测结果。这对于专注于多类别检测任务中的相关对象非常有用。
     retina_masks=False,
+    embed=None,
     project=project,
     name=name,
     stream=True,
     verbose=True,
     compile=False,
+    end2end=None,
+    # below are visualize parameters
     show=False,
     save=True,
     save_frames=False,
@@ -2115,7 +2141,7 @@ results = model(
     imgsz=640,
     rect=True,
     half=False,
-    device="cpu",
+    device=0,
     batch=1,
     max_det=300,
     vid_stride=1,
@@ -2125,11 +2151,14 @@ results = model(
     agnostic_nms=False,
     classes=None,  # list[int] | None, 将预测结果筛选到一组类别 ID。只会返回属于指定类别的检测结果。这对于专注于多类别检测任务中的相关对象非常有用。
     retina_masks=False,
+    embed=None,
     project=project,
     name=name,
     stream=True,
     verbose=True,
     compile=False,
+    end2end=None,
+    # below are visualize parameters
     show=False,
     save=True,
     save_frames=False,
@@ -2203,17 +2232,18 @@ yolo export model=path/to/best.pt format=onnx # export custom trained model
 | `imgsz`     | `int` 或 `tuple`  | `640`           | 模型输入所需的图像大小。可以是正方形图像的整数（例如， `640` 对于 640x640）或元组 `(height, width)` 用于指定特定维度。 |
 | `keras`     | `bool`            | `False`         | 启用导出为 Keras 格式，用于 [TensorFlow](https://www.ultralytics.com/glossary/tensorflow) SavedModel，提供与 TensorFlow serving 和 API 的兼容性。 |
 | `optimize`  | `bool`            | `False`         | 导出到 TorchScript 时，应用针对移动设备的优化，可能会减小模型大小并提高 [推理](https://docs.ultralytics.com/zh/modes/predict/) 性能。与 NCNN 格式或 CUDA 设备不兼容。 |
-| `half`      | `bool`            | `False`         | 启用 FP16（半精度）量化，在支持的硬件上可减小模型大小并加快推理速度。与 INT8 量化CPU 输出不兼容。仅适用于某些格式，如ONNX （见下文）。 |
+| `half`      | `bool`            | `False`         | 启用FP16（半精度）量化，减小模型大小并可能加速在受支持硬件上的推理。与INT8量化或仅限CPU的导出不兼容。仅适用于某些格式，例如ONNX（见下文）。 |
 | `int8`      | `bool`            | `False`         | 激活 INT8 量化，进一步压缩模型并加速推理，同时最大限度地减少[精度](https://www.ultralytics.com/glossary/accuracy)损失，主要用于[边缘设备](https://www.ultralytics.com/blog/understanding-the-real-world-applications-of-edge-ai)。与 TensorRT 结合使用时，执行训练后量化 (PTQ)。 |
-| `dynamic`   | `bool`            | `False`         | 允许 ONNX、TensorRT 和 OpenVINO 导出使用动态输入大小，从而提高处理不同图像尺寸的灵活性。自动设置为 `True` 当将TensorRT与INT8一起使用时。 |
+| `dynamic`   | `bool`            | `False`         | TorchScript、ONNX、OpenVINO、CoreML 动态调整输入尺寸，增强处理不同图像尺寸的灵活性。自动设置为 `True` 当将TensorRT与INT8一起使用时。 |
 | `simplify`  | `bool`            | `True`          | 使用以下方式简化 ONNX 导出的模型图 `onnxslim`，从而可能提高性能以及与推理引擎的兼容性。 |
 | `opset`     | `int`             | `None`          | 指定 [ONNX](https://docs.ultralytics.com/zh/integrations/onnx/) opset 版本，以与不同的 [ONNX](https://docs.ultralytics.com/zh/integrations/onnx/) 解析器和运行时兼容。如果未设置，则使用最新支持的版本。 |
 | `workspace` | `float` 或 `None` | `None`          | 设置最大工作区大小，单位为GiB，用于 [TensorRT](https://docs.ultralytics.com/zh/integrations/tensorrt/) 优化，平衡内存使用和性能。使用 `None` 用于 TensorRT 自动分配，最高可达设备最大值。 |
-| `nms`       | `bool`            | `False`         | 如果支持，则将非极大值抑制 (NMS) 添加到导出的模型（请参阅[导出格式](https://docs.ultralytics.com/zh/modes/export/)），从而提高检测后处理效率。不适用于 end2end 模型。 |
+| `nms`       | `bool`            | `False`         | 在支持的情况下，为导出的模型添加非极大值抑制 (NMS)（参见[导出格式](https://docs.ultralytics.com/zh/modes/export/)），从而提高检测后处理效率。不适用于端到端模型。 |
 | `batch`     | `int`             | `1`             | 指定导出模型批量推理大小，或导出模型将并发处理的最大图像数量，单位为。 `predict` 模式。对于 Edge TPU 导出，此项会自动设置为 1。 |
 | `device`    | `str`             | `None`          | 指定导出设备：GPU (`device=0`），CPU（`device=cpu`），适用于 Apple 芯片的 MPS（`device=mps`）或适用于 NVIDIA Jetson 的 DLA（`device=dla:0` 或 `device=dla:1`)。TensorRT 导出自动使用 GPU。 |
-| `data`      | `str`             | `'coco8.yaml'`  | 路径指向 [数据集](https://docs.ultralytics.com/zh/datasets/) 配置文件（默认： `coco8.yaml`)，这对于 INT8 量化校准至关重要。如果启用 INT8 但未指定，则将分配默认数据集。 |
+| `data`      | `str`             | `'coco8.yaml'`  | 路径指向 [数据集](https://docs.ultralytics.com/zh/datasets/) 配置文件，对于 INT8 量化校准至关重要。如果未指定且 INT8 已启用， `coco8.yaml` 将用作校准的备用方案。 |
 | `fraction`  | `float`           | `1.0`           | 指定用于 INT8 量化校准的数据集比例。允许在完整数据集的子集上进行校准，这对于实验或资源有限时非常有用。如果未在使用 INT8 启用时指定，则将使用完整数据集。 |
+| `end2end`   | `bool`            | `None`          | 覆盖支持NMS推理的YOLO （YOLO26、YOLOv10）中的端到端模式。将其设置为 `False` 使您能够将这些模型导出为与传统的NMS后处理流程兼容的格式。 |
 
 ## 导出格式
 
@@ -2221,23 +2251,24 @@ yolo export model=path/to/best.pt format=onnx # export custom trained model
 
 | 格式                                                         | `format` 参数 | 模型                        | 元数据 | 参数                                                         |
 | :----------------------------------------------------------- | :------------ | :-------------------------- | :----- | :----------------------------------------------------------- |
-| [PyTorch](https://pytorch.org/)                              | -             | `yolo11n.pt`                | ✅      | -                                                            |
-| [TorchScript](https://docs.ultralytics.com/zh/integrations/torchscript/) | `torchscript` | `yolo11n.torchscript`       | ✅      | `imgsz`, `half`, `dynamic`, `optimize`, `nms`, `batch`, `device` |
-| [ONNX](https://docs.ultralytics.com/zh/integrations/onnx/)   | `onnx`        | `yolo11n.onnx`              | ✅      | `imgsz`, `half`, `dynamic`, `simplify`, `opset`, `nms`, `batch`, `device` |
-| [OpenVINO](https://docs.ultralytics.com/zh/integrations/openvino/) | `openvino`    | `yolo11n_openvino_model/`   | ✅      | `imgsz`, `half`, `dynamic`, `int8`, `nms`, `batch`, `data`, `fraction`, `device` |
-| [TensorRT](https://docs.ultralytics.com/zh/integrations/tensorrt/) | `engine`      | `yolo11n.engine`            | ✅      | `imgsz`, `half`, `dynamic`, `simplify`, `workspace`, `int8`, `nms`, `batch`, `data`, `fraction`, `device` |
-| [CoreML](https://docs.ultralytics.com/zh/integrations/coreml/) | `coreml`      | `yolo11n.mlpackage`         | ✅      | `imgsz`, `dynamic`, `half`, `int8`, `nms`, `batch`, `device` |
-| [TF SavedModel](https://docs.ultralytics.com/zh/integrations/tf-savedmodel/) | `saved_model` | `yolo11n_saved_model/`      | ✅      | `imgsz`, `keras`, `int8`, `nms`, `batch`, `device`           |
-| [TF GraphDef](https://docs.ultralytics.com/zh/integrations/tf-graphdef/) | `pb`          | `yolo11n.pb`                | ❌      | `imgsz`, `batch`, `device`                                   |
-| [TF Lite](https://docs.ultralytics.com/zh/integrations/tflite/) | `tflite`      | `yolo11n.tflite`            | ✅      | `imgsz`, `half`, `int8`, `nms`, `batch`, `data`, `fraction`, `device` |
-| [TF Edge TPU](https://docs.ultralytics.com/zh/integrations/edge-tpu/) | `edgetpu`     | `yolo11n_edgetpu.tflite`    | ✅      | `imgsz`, `device`                                            |
-| [TF.js](https://docs.ultralytics.com/zh/integrations/tfjs/)  | `tfjs`        | `yolo11n_web_model/`        | ✅      | `imgsz`, `half`, `int8`, `nms`, `batch`, `device`            |
-| [PaddlePaddle](https://docs.ultralytics.com/zh/integrations/paddlepaddle/) | `paddle`      | `yolo11n_paddle_model/`     | ✅      | `imgsz`, `batch`, `device`                                   |
-| [MNN](https://docs.ultralytics.com/zh/integrations/mnn/)     | `mnn`         | `yolo11n.mnn`               | ✅      | `imgsz`, `batch`, `int8`, `half`, `device`                   |
-| [NCNN](https://docs.ultralytics.com/zh/integrations/ncnn/)   | `ncnn`        | `yolo11n_ncnn_model/`       | ✅      | `imgsz`, `half`, `batch`, `device`                           |
-| [IMX500](https://docs.ultralytics.com/zh/integrations/sony-imx500/) | `imx`         | `yolo11n_imx_model/`        | ✅      | `imgsz`, `int8`, `data`, `fraction`, `device`                |
-| [RKNN](https://docs.ultralytics.com/zh/integrations/rockchip-rknn/) | `rknn`        | `yolo11n_rknn_model/`       | ✅      | `imgsz`, `batch`, `name`, `device`                           |
-| [ExecuTorch](https://docs.ultralytics.com/zh/integrations/executorch/) | `executorch`  | `yolo11n_executorch_model/` | ✅      | `imgsz`, `device`                                            |
+| [PyTorch](https://pytorch.org/)                              | -             | `yolo26n.pt`                | ✅      | -                                                            |
+| [TorchScript](https://docs.ultralytics.com/zh/integrations/torchscript/) | `torchscript` | `yolo26n.torchscript`       | ✅      | `imgsz`, `half`, `dynamic`, `optimize`, `nms`, `batch`, `device` |
+| [ONNX](https://docs.ultralytics.com/zh/integrations/onnx/)   | `onnx`        | `yolo26n.onnx`              | ✅      | `imgsz`, `half`, `dynamic`, `simplify`, `opset`, `nms`, `batch`, `device` |
+| [OpenVINO](https://docs.ultralytics.com/zh/integrations/openvino/) | `openvino`    | `yolo26n_openvino_model/`   | ✅      | `imgsz`, `half`, `dynamic`, `int8`, `nms`, `batch`, `data`, `fraction`, `device` |
+| [TensorRT](https://docs.ultralytics.com/zh/integrations/tensorrt/) | `engine`      | `yolo26n.engine`            | ✅      | `imgsz`, `half`, `dynamic`, `simplify`, `workspace`, `int8`, `nms`, `batch`, `data`, `fraction`, `device` |
+| [CoreML](https://docs.ultralytics.com/zh/integrations/coreml/) | `coreml`      | `yolo26n.mlpackage`         | ✅      | `imgsz`, `dynamic`, `half`, `int8`, `nms`, `batch`, `device` |
+| [TF SavedModel](https://docs.ultralytics.com/zh/integrations/tf-savedmodel/) | `saved_model` | `yolo26n_saved_model/`      | ✅      | `imgsz`, `keras`, `int8`, `nms`, `batch`, `device`           |
+| [TF GraphDef](https://docs.ultralytics.com/zh/integrations/tf-graphdef/) | `pb`          | `yolo26n.pb`                | ❌      | `imgsz`, `batch`, `device`                                   |
+| [TF Lite](https://docs.ultralytics.com/zh/integrations/tflite/) | `tflite`      | `yolo26n.tflite`            | ✅      | `imgsz`, `half`, `int8`, `nms`, `batch`, `data`, `fraction`, `device` |
+| [TF Edge TPU](https://docs.ultralytics.com/zh/integrations/edge-tpu/) | `edgetpu`     | `yolo26n_edgetpu.tflite`    | ✅      | `imgsz`, `device`                                            |
+| [TF.js](https://docs.ultralytics.com/zh/integrations/tfjs/)  | `tfjs`        | `yolo26n_web_model/`        | ✅      | `imgsz`, `half`, `int8`, `nms`, `batch`, `device`            |
+| [PaddlePaddle](https://docs.ultralytics.com/zh/integrations/paddlepaddle/) | `paddle`      | `yolo26n_paddle_model/`     | ✅      | `imgsz`, `batch`, `device`                                   |
+| [MNN](https://docs.ultralytics.com/zh/integrations/mnn/)     | `mnn`         | `yolo26n.mnn`               | ✅      | `imgsz`, `batch`, `int8`, `half`, `device`                   |
+| [NCNN](https://docs.ultralytics.com/zh/integrations/ncnn/)   | `ncnn`        | `yolo26n_ncnn_model/`       | ✅      | `imgsz`, `half`, `batch`, `device`                           |
+| [IMX500](https://docs.ultralytics.com/zh/integrations/sony-imx500/) | `imx`         | `yolo26n_imx_model/`        | ✅      | `imgsz`, `int8`, `data`, `fraction`, `device`                |
+| [RKNN](https://docs.ultralytics.com/zh/integrations/rockchip-rknn/) | `rknn`        | `yolo26n_rknn_model/`       | ✅      | `imgsz`, `batch`, `name`, `device`                           |
+| [ExecuTorch](https://docs.ultralytics.com/zh/integrations/executorch/) | `executorch`  | `yolo26n_executorch_model/` | ✅      | `imgsz`, `device`                                            |
+| [Axelera](https://docs.ultralytics.com/zh/integrations/axelera/) | `axelera`     | `yolo26n_axelera_model/`    | ✅      | `imgsz`, `int8`, `data`, `fraction`, `device`                |
 
 ## Example
 
@@ -2441,17 +2472,17 @@ yolo track model=yolo11n.pt source="https://youtu.be/LNwODJXcvt4" tracker='custo
 | **参数**            | **有效值或范围**                              | **描述**                                                     |
 | :------------------ | :-------------------------------------------- | :----------------------------------------------------------- |
 | `tracker_type`      | `botsort`, `bytetrack`                        | 指定跟踪器类型。选项包括 `botsort` 或 `bytetrack`.           |
-| `track_high_thresh` | `0.0-1.0`                                     | 跟踪期间第一次关联使用的阈值。 影响检测与现有轨迹匹配的置信度。 |
+| `track_high_thresh` | `0.0-1.0`                                     | 用于追踪过程中首次关联的阈值。影响检测结果与现有track匹配的置信度。 |
 | `track_low_thresh`  | `0.0-1.0`                                     | 跟踪期间第二次关联使用的阈值。 在第一次关联失败时使用，具有更宽松的标准。 |
-| `new_track_thresh`  | `0.0-1.0`                                     | 如果检测结果与现有跟踪不匹配，则使用此阈值初始化新跟踪。用于控制何时认为新对象出现。 |
+| `new_track_thresh`  | `0.0-1.0`                                     | 如果检测与任何现有轨迹不匹配，则用于初始化新轨迹的阈值。控制何时认为新对象出现。 |
 | `track_buffer`      | `>=0`                                         | 用于指示在移除丢失的跟踪之前应保持活动状态的帧数的缓冲区。值越高，对遮挡的容忍度越高。 |
-| `match_thresh`      | `0.0-1.0`                                     | 匹配轨迹的阈值。 值越高，匹配越宽松。                        |
-| `fuse_score`        | `True`, `False`                               | 确定在匹配之前是否将置信度分数与 IoU 距离融合。有助于在关联时平衡空间和置信度信息。 |
+| `match_thresh`      | `0.0-1.0`                                     | 匹配轨道的阈值。数值越高，匹配越宽松。                       |
+| `fuse_score`        | `True`, `False`                               | 确定在匹配前是否将置信度分数与IoU距离融合。这有助于在关联时平衡空间信息和置信度信息。 |
 | `gmc_method`        | `orb`, `sift`, `ecc`, `sparseOptFlow`, `None` | 用于全局运动补偿的方法。有助于解决摄像机移动问题，从而改善跟踪效果。 |
-| `proximity_thresh`  | `0.0-1.0`                                     | 与 ReID（重新识别）有效匹配所需的最小 IoU。确保空间上的接近性，然后再使用外观线索。 |
+| `proximity_thresh`  | `0.0-1.0`                                     | 与 ReID（重识别）进行有效匹配所需的最小 IoU。确保在使用外观线索之前具有空间接近性。 |
 | `appearance_thresh` | `0.0-1.0`                                     | ReID 所需的最小外观相似度。设置两个检测结果在视觉上必须有多相似才能被链接。 |
 | `with_reid`         | `True`, `False`                               | 指示是否使用 ReID。启用基于外观的匹配，以便在遮挡情况下更好地进行跟踪。仅 BoTSORT 支持。 |
-| `model`             | `auto`, `yolo11[nsmlx]-cls.pt`                | 指定要使用的模型。默认为 `auto`，如果检测器是 YOLO，则使用原生特征，否则使用 `yolo11n-cls.pt`. |
+| `model`             | `auto`, `yolo26[nsmlx]-cls.pt`                | 指定要使用的模型。默认为 `auto`，如果检测器是 YOLO，则使用原生特征，否则使用 `yolo26n-cls.pt`. |
 
 ### 启用 Re-Identification (ReID)
 
@@ -2662,37 +2693,41 @@ cv2.destroyAllWindows()
 
 ```sh
 > yolo help
-
     Arguments received: ['yolo', 'help']. Ultralytics 'yolo' commands use the following syntax:
 
         yolo TASK MODE ARGS
 
-        Where   TASK (optional) is one of ('detect', 'segment', 'classify', 'pose')
-                MODE (required) is one of ('train', 'val', 'predict', 'export', 'track', 'benchmark')
+        Where   TASK (optional) is one of ['classify', 'detect', 'pose', 'segment', 'obb']
+                MODE (required) is one of ['predict', 'track', 'benchmark', 'train', 'val', 'export']
                 ARGS (optional) are any number of custom 'arg=value' pairs like 'imgsz=320' that override defaults.
                     See all ARGS at https://docs.ultralytics.com/usage/cfg or with 'yolo cfg'
 
     1. Train a detection model for 10 epochs with an initial learning_rate of 0.01
-        yolo train data=coco8.yaml model=yolo11n.pt epochs=10 lr0=0.01
+        yolo train data=coco8.yaml model=yolo26n.pt epochs=10 lr0=0.01
 
     2. Predict a YouTube video using a pretrained segmentation model at image size 320:
-        yolo predict model=yolo11n-seg.pt source='https://youtu.be/LNwODJXcvt4' imgsz=320
+        yolo predict model=yolo26n-seg.pt source='https://youtu.be/LNwODJXcvt4' imgsz=320
 
-    3. Val a pretrained detection model at batch-size 1 and image size 640:
-        yolo val model=yolo11n.pt data=coco8.yaml batch=1 imgsz=640
+    3. Validate a pretrained detection model at batch-size 1 and image size 640:
+        yolo val model=yolo26n.pt data=coco8.yaml batch=1 imgsz=640
 
-    4. Export a yolo11n classification model to ONNX format at image size 224 by 128 (no TASK required)
-        yolo export model=yolo11n-cls.pt format=onnx imgsz=224,128
+    4. Export a YOLO26n classification model to ONNX format at image size 224 by 128 (no TASK required)
+        yolo export model=yolo26n-cls.pt format=onnx imgsz=224,128
 
-    5. Run special commands:
+    5. Ultralytics solutions usage
+        yolo solutions count or any of ['crop', 'blur', 'workout', 'heatmap', 'isegment', 'visioneye', 'speed', 'queue', 'analytics', 'inference', 'trackzone'] source="path/to/video.mp4"
+
+    6. Run special commands:
         yolo help
         yolo checks
         yolo version
         yolo settings
         yolo copy-cfg
         yolo cfg
+        yolo solutions help
 
     Docs: https://docs.ultralytics.com
+    Solutions: https://docs.ultralytics.com/solutions/
     Community: https://community.ultralytics.com
     GitHub: https://github.com/ultralytics/ultralytics
 ```
@@ -2701,64 +2736,71 @@ cv2.destroyAllWindows()
 
 ```sh
 > yolo checks
-Ultralytics YOLO11.0.195  Python-3.11.4 torch-2.1.0+cu121 CUDA:0 (NVIDIA GeForce GTX 1080 Ti, 11264MiB)
-Setup complete  (16 CPUs, 31.9 GB RAM, 152.1/200.0 GB disk)
+Ultralytics 8.4.19 🚀 Python-3.12.12 torch-2.10.0+cu128 CUDA:0 (NVIDIA GeForce RTX 3090, 24124MiB)
+Setup complete ✅ (32 CPUs, 93.9 GB RAM, 596.4/983.3 GB disk)
 
-OS                  Windows-10-10.0.19044-SP0
-Environment         Windows
-Python              3.11.4
-Install             git
-RAM                 31.91 GB
-CPU                 Intel Core(TM) i7-10700 2.90GHz
-CUDA                12.1
+OS                     Linux-5.15.0-140-generic-x86_64-with-glibc2.31
+Environment            Linux
+Python                 3.12.12
+Install                git
+Path                   /home/spepc/lihongtu/dl/train/ultralytics--git/ultralytics
+RAM                    93.90 GB
+Disk                   596.4/983.3 GB
+CPU                    13th Gen Intel Core i9-13900K
+CPU count              32
+GPU                    NVIDIA GeForce RTX 3090, 24124MiB
+GPU count              1
+CUDA                   12.8
 
-matplotlib           3.8.0>=3.3.0
-numpy                1.26.0>=1.22.2
-opencv-python        4.8.1.78>=4.6.0
-pillow               10.0.1>=7.1.2
-pyyaml               6.0.1>=5.3.1
-requests             2.31.0>=2.23.0
-scipy                1.10.1>=1.4.1
-torch                2.1.0+cu121>=1.8.0
-torchvision          0.16.0+cu121>=0.9.0
-tqdm                 4.66.1>=4.64.0
-pandas               2.1.1>=1.1.4
-seaborn              0.13.0>=0.11.0
-psutil               5.9.5
-py-cpuinfo           9.0.0
-thop                 0.1.1-2209072238>=0.1.1
+numpy                  ✅ 2.4.2>=1.23.0
+matplotlib             ✅ 3.10.8>=3.3.0
+opencv-python          ✅ 4.13.0.92>=4.6.0
+pillow                 ✅ 12.1.1>=7.1.2
+pyyaml                 ✅ 6.0.3>=5.3.1
+requests               ✅ 2.32.5>=2.23.0
+scipy                  ✅ 1.17.1>=1.4.1
+torch                  ✅ 2.10.0>=1.8.0
+torch                  ✅ 2.10.0!=2.4.0,>=1.8.0; sys_platform == "win32"
+torchvision            ✅ 0.25.0>=0.9.0
+psutil                 ✅ 7.2.2>=5.8.0
+polars                 ✅ 1.38.1>=0.20.0
+ultralytics-thop       ✅ 2.0.18>=2.0.18
 ```
 
 ## yolo version
 
 ```sh
 > yolo version
-8.0.195
+8.4.19
 ```
 
 ## yolo settings
 
 ```sh
 > yolo settings
- Learn about settings at https://docs.ultralytics.com/quickstart/#ultralytics-settings
-Printing 'C:\Users\Administrator\AppData\Roaming\Ultralytics\settings.yaml'
-
-settings_version: 0.0.4
-datasets_dir: D:\ml\code\datasets
-weights_dir: d:\ml\code\yolo11-ultralytics\weights
-runs_dir: d:\ml\code\yolo11-ultralytics\runs
-uuid: 062fa24c9a04873db7e870e2df7f4297a2745f5a740d9e7bd868b5884cf0b91a
-sync: true
-api_key: ''
-clearml: true
-comet: true
-dvc: true
-hub: true
-mlflow: true
-neptune: true
-raytune: true
-tensorboard: true
-wandb: true
+JSONDict("/home/spepc/.config/Ultralytics/settings.json"):
+{
+  "settings_version": "0.0.6",
+  "datasets_dir": "/home/spepc/lihongtu/dl/train/datasets",
+  "weights_dir": "/home/spepc/lihongtu/dl/train/ultralytics--git/weights",
+  "runs_dir": "./runs",
+  "uuid": "0c48beeafa6ec3f635c3da340286bca7125f47463a2826e1a8efb51a62bce090",
+  "sync": true,
+  "api_key": "",
+  "openai_api_key": "",
+  "clearml": true,
+  "comet": true,
+  "dvc": true,
+  "hub": true,
+  "mlflow": true,
+  "neptune": true,
+  "raytune": true,
+  "tensorboard": true,
+  "wandb": false,
+  "vscode_msg": true,
+  "openvino_msg": true
+}
+💡 Learn more about Ultralytics Settings at https://docs.ultralytics.com/quickstart/#ultralytics-settings
 ```
 
 ## yolo copy-cfg
@@ -2773,7 +2815,8 @@ Example YOLO command with this new custom cfg:
 ## yolo cfg
 
 ```sh
-Printing 'C:\Users\Administrator\Desktop\self\yolo11-ultralytics\ultralytics\cfg\default.yaml'
+> yolo cfg
+Printing '/home/spepc/lihongtu/dl/train/ultralytics--git/ultralytics/cfg/default.yaml'
 
 task: detect
 mode: train
@@ -2805,21 +2848,22 @@ resume: false
 amp: true
 fraction: 1.0
 profile: false
-freeze: None
-multi_scale: false
+freeze: null
+multi_scale: 0.0
+compile: false
 overlap_mask: true
 mask_ratio: 4
 dropout: 0.0
 val: true
 split: val
 save_json: false
-save_hybrid: false
 conf: null
 iou: 0.7
 max_det: 300
 half: false
 dnn: false
 plots: true
+end2end: null
 source: null
 vid_stride: 1
 stream_buffer: false
@@ -2843,9 +2887,9 @@ keras: false
 optimize: false
 int8: false
 dynamic: false
-simplify: false
+simplify: true
 opset: null
-workspace: 4
+workspace: null
 nms: false
 lr0: 0.01
 lrf: 0.01
@@ -2859,7 +2903,8 @@ cls: 0.5
 dfl: 1.5
 pose: 12.0
 kobj: 1.0
-label_smoothing: 0.0
+rle: 1.0
+angle: 1.0
 nbs: 64
 hsv_h: 0.015
 hsv_s: 0.7
@@ -2874,10 +2919,11 @@ fliplr: 0.5
 bgr: 0.0
 mosaic: 1.0
 mixup: 0.0
+cutmix: 0.0
 copy_paste: 0.0
+copy_paste_mode: flip
 auto_augment: randaugment
 erasing: 0.4
-crop_fraction: 1.0
 cfg: null
 tracker: botsort.yaml
 ```
