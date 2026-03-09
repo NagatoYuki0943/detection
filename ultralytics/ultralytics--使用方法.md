@@ -2687,6 +2687,95 @@ cv2.destroyAllWindows()
 
 通过创建更多线程并应用相同的方法，可以轻松扩展此示例以处理更多视频文件和模型。
 
+## Example
+
+```python
+# https://docs.ultralytics.com/zh/models/yolo-world/
+
+from pathlib import Path
+from ultralytics import YOLOWorld
+from ultralytics.engine.results import Results
+
+
+model_path = Path("weights/yolov8x-worldv2.pt").resolve()
+source = Path("datasets/videos/traffic monitor.mp4").resolve()
+project = "myproject"
+name = "traffic monitor/yolov8x-worldv2/track"
+
+print(f"{model_path} is exists: {model_path.exists()}")
+print(f"{source} is exists: {source.exists()}")
+
+
+model = YOLOWorld(model_path)
+
+# prompt based (optional)
+# names = ["person", "car", "bus"]
+# model.set_classes(names)
+
+results = model.track(
+    source,
+    conf=0.25,
+    iou=0.7,
+    imgsz=640,
+    rect=True,
+    half=False,
+    device=0,
+    batch=1,
+    max_det=300,
+    vid_stride=1,
+    stream_buffer=False,
+    visualize=False,
+    augment=False,
+    agnostic_nms=False,
+    classes=None,  # list[int] | None, 将预测结果筛选到一组类别 ID。只会返回属于指定类别的检测结果。这对于专注于多类别检测任务中的相关对象非常有用。
+    retina_masks=False,
+    embed=None,
+    project=project,
+    name=name,
+    stream=True,
+    verbose=True,
+    compile=False,
+    end2end=None,
+    # below are visualize parameters
+    show=False,
+    save=True,
+    save_frames=False,
+    save_txt=False,
+    save_conf=False,
+    save_crop=False,
+    show_labels=True,
+    show_conf=True,
+    show_boxes=True,
+    line_width=None,
+    # tracking parameters
+    tracker="botsort.yaml",
+)
+
+result: Results
+for result in results:
+    result.orig_img
+    result.orig_shape
+    result.names
+    boxes = result.boxes  # Boxes object for bounding box outputs
+    boxes.id
+    boxes.cls
+    boxes.conf
+    boxes.xyxy
+    boxes.xyxyn
+    boxes.xywh
+    boxes.xywhn
+    result.masks  # Masks object for segmentation masks outputs
+    result.keypoints  # Keypoints object for pose outputs
+    result.probs  # Probs object for classification outputs
+    result.obb  # Oriented boxes object for OBB outputs
+    result.path  # Path to the input image file.
+    result.save_dir  # Directory to save results.
+    # result.show()  # display to screen
+    # result.save(filename="result.jpg")  # Save annotated inference results image to file.
+    # result.save_txt(txt_file="result.txt", save_conf=False)  # Save detection results to a text file.
+    # result.save_crop(save_dir="crops", file_name="im.jpg")  # Save cropped detection images to specified directory.
+```
+
 # yolo special commands
 
 ## yolo help
