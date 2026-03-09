@@ -2737,7 +2737,7 @@ results = model.track(
     compile=False,
     end2end=None,
     # below are visualize parameters
-    show=False,
+    show=True,
     save=True,
     save_frames=False,
     save_txt=False,
