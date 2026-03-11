@@ -128,9 +128,9 @@ def voc2yolo(
                     cls_id = name2id[name]
                     out_file.write(f"{cls_id} {box_x} {box_y} {box_w} {box_h}\n")
         except FileNotFoundError:
-            if (not txt_path.exists())
+            if (not txt_path.exists()):
                 print(f"txt file not found: {txt_path}")
-            if (not image_path.exists())
+            if (not image_path.exists()):
                 print(f"image file not found: {image_path}")
         except Exception:
             print(f"Error: {traceback.format_exc()}")
