@@ -187,7 +187,7 @@ def yolo2voc(
             writer.save(xml_path)
 
         except FileNotFoundError:
-            print(f"Image file not found: {image_path}")
+            print(f"file not found: {txt_path} or {image_path}")
         except Exception:
             print(f"Error processing {txt_path.name}: {traceback.format_exc()}")
 
