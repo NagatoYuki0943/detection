@@ -89,7 +89,7 @@ def filter_voc(
         new_names = [name_remap.get(i, i) for i in keep_names]
     else:
         new_names = keep_names
-    new_names = sorted(new_names)
+    new_names = sorted(set(new_names))
     data = {
         "names": {i: name for i, name in enumerate(new_names)},
     }
@@ -206,126 +206,26 @@ def filter_voc(
     print(f"save yaml config to {new_yaml_path}")
 
 
-# if __name__ == "__main__":
-#     # 原本 xml 文件路径, 支持多个目录
-#     xml_dirs = [
-#         "../VOC/xmls/test2007",
-#     ]
-#     # 原本图片文件路径, 支持多个目录, 但是要和 xml_dirs 一一匹配
-#     image_dirs = [
-#         "../VOC/images/test2007",
-#     ]
-#     # 过滤后的 xmls 和 images 的存放路径, 里面会有 xmls 和 images 文件夹, 用来存放全部过滤后的数据
-#     filtered_save_dir = "../VOC/test2007--filtered--voc-format"
-#     # 对应的 yaml 文件路径(不是必须, 当前主要目的是获取类别名称)
-#     yaml_path = "../VOC/VOC.yaml"
-
-#     names = load_names_from_yaml(yaml_path)
-
-#     # 保留的类别名, 这里保留前一半类别
-#     keep_names = names[: len(names) // 2]
-
-#     # 类别的重映射
-#     name_remap = {i: i for i in keep_names}
-
-#     filter_voc(xml_dirs, image_dirs, filtered_save_dir, keep_names, name_remap)
-
 if __name__ == "__main__":
     # 原本 xml 文件路径, 支持多个目录
     xml_dirs = [
         "../VOC/xmls/test2007",
-        "../VOC/xmls/train2007",
-        "../VOC/xmls/train2012",
-        "../VOC/xmls/val2007",
-        "../VOC/xmls/val2012",
     ]
     # 原本图片文件路径, 支持多个目录, 但是要和 xml_dirs 一一匹配
     image_dirs = [
         "../VOC/images/test2007",
-        "../VOC/images/train2007",
-        "../VOC/images/train2012",
-        "../VOC/images/val2007",
-        "../VOC/images/val2012",
     ]
     # 过滤后的 xmls 和 images 的存放路径, 里面会有 xmls 和 images 文件夹, 用来存放全部过滤后的数据
-    filtered_save_dir = "../VOC--person--filtered--voc-format"
+    filtered_save_dir = "../VOC/test2007--filtered--voc-format"
+    # 对应的 yaml 文件路径(不是必须, 当前主要目的是获取类别名称)
+    yaml_path = "../VOC/VOC.yaml"
 
-    keep_names = ["person"]
+    names = load_names_from_yaml(yaml_path)
+
+    # 保留的类别名, 这里保留前一半类别
+    keep_names = names[: len(names) // 2]
 
     # 类别的重映射
-    name_remap = {"person": "person"}
+    name_remap = {i: i for i in keep_names}
 
-    filter_voc(
-        xml_dirs,
-        image_dirs,
-        filtered_save_dir,
-        keep_names,
-        name_remap,
-        0.25,
-        0.25,
-        "less_eq",
-        use_train_size_calc_percent=True,
-    )
-
-# if __name__ == "__main__":
-#     # 原本 xml 文件路径, 支持多个目录
-#     xml_dirs = [
-#         "../coco/xmls/train2017",
-#         "../coco/xmls/val2017",
-#     ]
-#     # 原本图片文件路径, 支持多个目录, 但是要和 xml_dirs 一一匹配
-#     image_dirs = [
-#         "../coco/images/train2017",
-#         "../coco/images/val2017",
-#     ]
-#     # 过滤后的 xmls 和 images 的存放路径, 里面会有 xmls 和 images 文件夹, 用来存放全部过滤后的数据
-#     filtered_save_dir = "../coco--person--filtered--voc-format"
-
-#     keep_names = ["person"]
-
-#     # 类别的重映射
-#     name_remap = {"person": "person"}
-
-#     filter_voc(
-#         xml_dirs,
-#         image_dirs,
-#         filtered_save_dir,
-#         keep_names,
-#         name_remap,
-#         0.25,
-#         0.25,
-#         "less_eq",
-#         use_train_size_calc_percent=True,
-#     )
-
-
-# if __name__ == "__main__":
-#     # 原本 xml 文件路径, 支持多个目录
-#     xml_dirs = [
-#         "../CrowdHuman/train/xmls",
-#         "../CrowdHuman/val/xmls",
-#     ]
-#     # 原本图片文件路径, 支持多个目录, 但是要和 xml_dirs 一一匹配
-#     image_dirs = [
-#         "../CrowdHuman/train/images",
-#         "../CrowdHuman/val/images",
-#     ]
-#     # 过滤后的 xmls 和 images 的存放路径, 里面会有 xmls 和 images 文件夹, 用来存放全部过滤后的数据
-#     filtered_save_dir = "../CrowdHuman--person--filtered--voc-format"
-
-#     keep_names = ["fbox"]
-
-#     # 类别的重映射
-#     name_remap = {"fbox": "person"}
-
-#     filter_voc(
-#         xml_dirs,
-#         image_dirs,
-#         filtered_save_dir,
-#         keep_names,
-#         name_remap,
-#         0.25,
-#         0.25,
-#         "less_eq",
-#         use_train_size_calc_percent=True,
-#     )
+    filter_voc(xml_dirs, image_dirs, filtered_save_dir, keep_names, name_remap)
