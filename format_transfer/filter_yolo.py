@@ -78,7 +78,7 @@ def filter_yolo(
         new_ids = [id_remap.get(i, i) for i in keep_ids]
     else:
         new_ids = keep_ids
-    new_names = sorted([id2name[i] for i in new_ids])
+    new_names = sorted([id2name[i] for i in set(new_ids)])
     data = {
         "names": {i: name for i, name in enumerate(new_names)},
     }
