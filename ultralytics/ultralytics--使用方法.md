@@ -2295,6 +2295,11 @@ model = YOLO(model_path, task="detect")
 
 export_type = "onnx"
 imgsz = 640
+half = False
+dynamic = False
+nms = False
+int8 = False
+batch = 1
 
 
 # Export the model
@@ -2302,34 +2307,34 @@ if export_type == "torchscript":
     model.export(
         format="torchscript",
         imgsz=imgsz,
-        half=False,
-        dynamic=False,
+        half=half,
+        dynamic=dynamic,
         optimize=True,
-        nms=False,
-        batch=1,
+        nms=nms,
+        batch=batch,
         device="cpu",
     )
 elif export_type == "onnx":
     model.export(
         format="onnx",
         imgsz=imgsz,
-        half=False,
-        dynamic=False,
+        half=half,
+        dynamic=dynamic,
         simplify=True,
         opset=None,
-        nms=False,
-        batch=1,
+        nms=nms,
+        batch=batch,
         device="cpu",
     )
 elif export_type == "openvino":
     model.export(
         format="openvino",
         imgsz=imgsz,
-        half=False,
-        dynamic=False,
-        int8=False,
-        nms=False,
-        batch=1,
+        half=half,
+        dynamic=dynamic,
+        int8=int8,
+        nms=nms,
+        batch=batch,
         data=data_path,
         fraction=1.0,
         device="cpu",
@@ -2338,24 +2343,16 @@ elif export_type == "tensorrt":
     model.export(
         format="tensorrt",
         imgsz=imgsz,
-        half=False,
-        dynamic=False,
+        half=half,
+        dynamic=dynamic,
         simplify=True,
         workspace=None,
-        int8=False,
-        nms=False,
-        batch=1,
+        int8=int8,
+        nms=nms,
+        batch=batch,
         data=data_path,
         fraction=1.0,
         device=0,
-    )
-elif export_type == "ncnn":
-    model.export(
-        format="ncnn",
-        imgsz=imgsz,
-        half=False,
-        batch=1,
-        device="cpu",
     )
 ```
 
