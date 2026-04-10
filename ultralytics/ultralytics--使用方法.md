@@ -395,14 +395,14 @@ Ultralytics 通过 CLI 为常见的计算机视觉应用提供即用型解决方
 
 ```sh
 yolo solutions count show=True
-yolo solutions count source="path/to/video.mp4" # specify video file path
+yolo solutions count source="path/to/videos.mp4" # specify video file path
 ```
 
 使用姿势模型监控锻炼练习：
 
 ```sh
 yolo solutions workout show=True
-yolo solutions workout source="path/to/video.mp4" # specify video file path
+yolo solutions workout source="path/to/videos.mp4" # specify video file path
 
 # Use keypoints for ab-workouts
 yolo solutions workout kpts=[5, 11, 13] # left side
@@ -413,7 +413,7 @@ yolo solutions workout kpts=[6, 12, 14] # right side
 
 ```sh
 yolo solutions queue show=True
-yolo solutions queue source="path/to/video.mp4"                                # specify video file path
+yolo solutions queue source="path/to/videos.mp4"                                # specify video file path
 yolo solutions queue region="[(20, 400), (1080, 400), (1080, 360), (20, 360)]" # configure queue coordinates
 ```
 
@@ -1347,7 +1347,7 @@ from ultralytics import YOLO
 model = YOLO("yolo11n.pt")
 
 # Define path to video file
-source = "path/to/video.mp4"
+source = "path/to/videos.mp4"
 
 # Run inference on the source
 results = model(source, stream=True)  # generator of Results objects
@@ -1888,7 +1888,7 @@ from ultralytics import YOLO
 model = YOLO("yolo11n.pt")
 
 # Open the video file
-video_path = "path/to/your/video/file.mp4"
+video_path = "path/to/your/videos/file.mp4"
 cap = cv2.VideoCapture(video_path)
 
 # Loop through the video frames
@@ -2294,13 +2294,14 @@ model = YOLO(model_path, task="detect")
 
 
 export_type = "onnx"
+imgsz = 640
 
 
 # Export the model
 if export_type == "torchscript":
     model.export(
         format="torchscript",
-        imgsz=640,
+        imgsz=imgsz,
         half=False,
         dynamic=False,
         optimize=True,
@@ -2311,7 +2312,7 @@ if export_type == "torchscript":
 elif export_type == "onnx":
     model.export(
         format="onnx",
-        imgsz=640,
+        imgsz=imgsz,
         half=False,
         dynamic=False,
         simplify=True,
@@ -2323,7 +2324,7 @@ elif export_type == "onnx":
 elif export_type == "openvino":
     model.export(
         format="openvino",
-        imgsz=640,
+        imgsz=imgsz,
         half=False,
         dynamic=False,
         int8=False,
@@ -2336,7 +2337,7 @@ elif export_type == "openvino":
 elif export_type == "tensorrt":
     model.export(
         format="tensorrt",
-        imgsz=640,
+        imgsz=imgsz,
         half=False,
         dynamic=False,
         simplify=True,
@@ -2351,7 +2352,7 @@ elif export_type == "tensorrt":
 elif export_type == "ncnn":
     model.export(
         format="ncnn",
-        imgsz=640,
+        imgsz=imgsz,
         half=False,
         batch=1,
         device="cpu",
@@ -2530,7 +2531,7 @@ from ultralytics import YOLO
 model = YOLO("yolo11n.pt")
 
 # Open the video file
-video_path = "path/to/video.mp4"
+video_path = "path/to/videos.mp4"
 cap = cv2.VideoCapture(video_path)
 
 # Loop through the video frames
@@ -2580,7 +2581,7 @@ from ultralytics import YOLO
 model = YOLO("yolo11n.pt")
 
 # Open the video file
-video_path = "path/to/video.mp4"
+video_path = "path/to/videos.mp4"
 cap = cv2.VideoCapture(video_path)
 
 # Store the track history
@@ -2653,7 +2654,7 @@ from ultralytics import YOLO
 
 # Define model names and video sources
 MODEL_NAMES = ["yolo11n.pt", "yolo11n-seg.pt"]
-SOURCES = ["path/to/video.mp4", "0"]  # local video, 0 for webcam
+SOURCES = ["path/to/videos.mp4", "0"]  # local video, 0 for webcam
 
 
 def run_tracker_in_thread(model_name, filename):
@@ -2698,7 +2699,7 @@ from ultralytics.engine.results import Results
 
 
 model_path = Path("weights/yolov8x-worldv2.pt").resolve()
-source = Path("datasets/videos/traffic monitor.mp4").resolve()
+source = Path("datasets/videoss/traffic monitor.mp4").resolve()
 project = "myproject"
 name = "traffic monitor/yolov8x-worldv2/track"
 
@@ -2804,7 +2805,7 @@ for result in results:
         yolo export model=yolo26n-cls.pt format=onnx imgsz=224,128
 
     5. Ultralytics solutions usage
-        yolo solutions count or any of ['crop', 'blur', 'workout', 'heatmap', 'isegment', 'visioneye', 'speed', 'queue', 'analytics', 'inference', 'trackzone'] source="path/to/video.mp4"
+        yolo solutions count or any of ['crop', 'blur', 'workout', 'heatmap', 'isegment', 'visioneye', 'speed', 'queue', 'analytics', 'inference', 'trackzone'] source="path/to/videos.mp4"
 
     6. Run special commands:
         yolo help
