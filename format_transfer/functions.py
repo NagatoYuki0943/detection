@@ -13,7 +13,7 @@ def get_image_path(image_dir: str | Path, image_stem: str = ""):
         image_path = image_dir / (image_stem + image_suffix)
         if image_path.is_file():
             return image_path
-    raise FileNotFoundError(f"No image file found in {image_dir}")
+    raise FileNotFoundError(f"No image {image_stem} file found in {image_dir}")
 
 
 def read_yaml(yaml_path: str | Path) -> dict | list:
