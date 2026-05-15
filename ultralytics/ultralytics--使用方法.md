@@ -726,8 +726,10 @@ from ultralytics import YOLO, settings
 
 settings.update(
     {
-        "runs_dir": "./runs",
         "tensorboard": True,
+        "datasets_dir": "datasets",
+        "weights_dir": "weights",
+        "runs_dir": "runs",
     }
 )
 
@@ -1933,8 +1935,18 @@ py
 
 ```python
 from pathlib import Path
-from ultralytics import YOLO
+from ultralytics import YOLO, settings
 from ultralytics.engine.results import Results
+
+
+settings.update(
+    {
+        "tensorboard": True,
+        "datasets_dir": "datasets",
+        "weights_dir": "weights",
+        "runs_dir": "runs",
+    }
+)
 
 
 model_path = Path("weights/yolo11n.pt").resolve()
@@ -2289,7 +2301,17 @@ py
 
 ```py
 from pathlib import Path
-from ultralytics import YOLO
+from ultralytics import YOLO, settings
+
+
+settings.update(
+    {
+        "tensorboard": True,
+        "datasets_dir": "datasets",
+        "weights_dir": "weights",
+        "runs_dir": "runs",
+    }
+)
 
 
 model_path = Path("weights/yolo11n.pt").resolve()
@@ -2700,8 +2722,18 @@ cv2.destroyAllWindows()
 # https://docs.ultralytics.com/zh/models/yolo-world/
 
 from pathlib import Path
-from ultralytics import YOLOWorld
+from ultralytics import YOLOWorld, settings
 from ultralytics.engine.results import Results
+
+
+settings.update(
+    {
+        "tensorboard": True,
+        "datasets_dir": "datasets",
+        "weights_dir": "weights",
+        "runs_dir": "runs",
+    }
+)
 
 
 model_path = Path("weights/yolov8x-worldv2.pt").resolve()
