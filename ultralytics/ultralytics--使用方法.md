@@ -1146,6 +1146,263 @@ cmd
 yolo detect val imgsz=640 save_json=True save_txt=True save_conf=True conf=0.25 iou=0.7 data=ultralytics/cfg/datasets/coco8.yaml model=weights/yolo11n.pt device=0 project=myproject name=yolo11n/val
 ```
 
+## 验证原理
+
+代码主要在
+
+验证基类 https://github.com/ultralytics/ultralytics/blob/main/ultralytics/engine/validator.py
+
+目标检测具体实现 https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/yolo/detect/val.py
+
+### 流程
+
+```sh
+DetectionValidator()
+  └─ __call__(model=...)
+       ├─ AutoBackend / DataLoader 初始化
+       ├─ 准备 model
+       ├─ 准备 data / dataloader
+       ├─ model.eval()
+       ├─ warmup
+       ├─ init_metrics()            # DetMetrics 准备
+       ├─ for batch in dataloader:
+       │    ├─ preprocess()         # 图像归一化、移到设备
+       │    ├─ model()              # 推理
+       │    ├─ loss()               # 计算（训练时）
+       │    ├─ postprocess()        # NMS，得到 bboxes/conf/cls
+       │    │    ├─ NMS
+       │    └─ update_metrics()     # 匹配真值，累积 tp/conf
+       │         ├─ _prepare_batch()    # 取出当前图的 GT（xywh → xyxy，映射到图像尺寸）
+       │         ├─ _prepare_pred()     # 如果是单类别模式，就把所有预测类别都当成 0 类。
+       │         ├─ _process_batch()
+       │         │    ├─ box_iou()            # 计算 IoU 矩阵 [M_true, N_pred]
+       │         │    └─ match_predictions()  # 计算 TP [N_pred, 10]
+       │         └─ update_stats(tp, target_cls, conf, ...)
+       ├─ gather_stats()            # DDP 汇总
+       ├─ get_stats()               # 获取最终指标
+       │    └─ process()            # 计算最终指标
+       ├─ finalize_metrics()        # 记录速度、混淆矩阵
+       ├── save_json / eval_json
+       └── return stats
+```
+
+### match_predictions：TP 多 IOU 阈值匹配
+
+这是最关键的一步，输出形状是 (N_pred, 10)，对应 10 个 IoU 阈值（0.50 到 0.95，步长 0.05）：
+
+对每个 IoU 阈值 t：
+
+1. 只保留类别匹配的 IoU 值（wrong class → 0）
+2. 找所有 iou >= t 的 (gt, pred) 配对
+3. 默认使用贪心匹配：按 IoU 降序排序，每个 GT 和每个预测最多匹配一次。
+   若 use_scipy=True，则使用匈牙利算法（linear_sum_assignment）做最优匹配。
+4. 只有类别一致且 IoU ≥ 阈值 才算 True Positive。
+
+返回 correct 矩阵，形状为 [N_pred, 10]（N_pred 个预测，10 个 IoU 阈值，0.50 到 0.95），表示该预测在每个阈值下是否为 TP。
+
+类别错误或者 IOU 不达标都是 False
+
+注意: 这里只记录了每个预测框在不同的 IOU 下是否匹配上了真实框，没有记录对应的真实框，因为不需要，真实类别、预测类别和预测分数在 update_stats 中记录了
+
+### update_stats
+
+最终 stats 里积累了每张图的数据：
+
+| 字段       | 含义                                   |
+| ---------- | -------------------------------------- |
+| tp         | 每个预测框在 10 个 IoU 阈值下是否为 TP |
+| target_cls | 当前图片所有 GT 类别                   |
+| target_img | 当前图片出现过哪些类别                 |
+| conf       | 每个预测框的置信度                     |
+| pred_cls   | 每个预测框的预测类别                   |
+| im_name    | 图片名                                 |
+
+### process
+
+1. 收集所有图片的预测结果
+2. 按 confidence 从高到低排序(这里不考虑类别)
+3. 对每个类别分别统计 TP / FP
+4. 得到 Precision-Recall 曲线
+5. 对 PR 曲线积分得到 AP
+6. 对类别取平均得到 mAP
+7. 对 10 个 IoU 阈值取平均得到 mAP50-95
+8. 计算 Percision / Recall
+
+
+
+#### 计算 Precision-Recall 曲线举例
+
+假设 `car` 类有 3 个真实目标：
+
+```
+GT car 数量 n_l = 3
+```
+
+模型预测了 5 个 car 框，按 conf 降序：
+
+| 排名 | conf | tp@0.5 |
+| ---- | ---- | ------ |
+| 1    | 0.95 | True   |
+| 2    | 0.88 | False  |
+| 3    | 0.70 | True   |
+| 4    | 0.40 | True   |
+| 5    | 0.20 | False  |
+
+然后累计：
+
+| 截断到哪个 conf | TP 累计 | FP 累计 | Precision    | Recall       |
+| --------------- | ------- | ------- | ------------ | ------------ |
+| ≥ 0.95          | 1       | 0       | 1 / 1 = 1.00 | 1 / 3 = 0.33 |
+| ≥ 0.88          | 1       | 1       | 1 / 2 = 0.50 | 1 / 3 = 0.33 |
+| ≥ 0.70          | 2       | 1       | 2 / 3 = 0.67 | 2 / 3 = 0.67 |
+| ≥ 0.40          | 3       | 1       | 3 / 4 = 0.75 | 3 / 3 = 1.00 |
+| ≥ 0.20          | 3       | 2       | 3 / 5 = 0.60 | 3 / 3 = 1.00 |
+
+这条表就形成了一条 **Precision-Recall 曲线**。
+
+然后 AP 就是这条 PR 曲线下面的面积。
+
+10个 IOU 阈值就是用不同的阈值来判断是否是 TP 的方法，会按照上面的方式计算10次。
+
+#### `conf` 作用
+
+`conf`**不会直接当成权重参与。**
+
+也就是说，不是这样：
+
+```
+AP = 某种 tp * conf 的加权平均
+```
+
+不是。
+
+`conf` 的作用主要是：
+
+```
+决定预测框排序
+决定不同 confidence threshold 下的 P/R 点
+```
+
+所以 AP 评估的是：
+
+> 模型能不能把正确的框排在错误的框前面。
+
+如果一个模型的分数校准不准，比如它总是把数值压得很低：
+
+```
+0.31, 0.28, 0.25
+```
+
+但排序完全正确，那么 AP 可能依然不错。
+
+如果另一个模型数值看起来很自信：
+
+```
+0.99, 0.98, 0.97
+```
+
+但高分里面一堆 FP，那 AP 会很难看。
+
+所以 **AP 更关心 ranking，不太关心 confidence 的绝对值校准**。这就是为什么只看 `conf=0.9` 这种绝对值有时候很迷惑。
+
+默认 detect val 通常很低，比如 `0.001`，目的就是尽量保留候选框，让 mAP 评估可以扫完整的 PR 曲线。
+
+如果你把验证时的 `conf` 设得很高，比如：
+
+```
+yolo val conf=0.5
+```
+
+那很多低分预测会提前被过滤掉。
+
+后果是：
+
+```
+Recall 可能上不去
+mAP 可能下降
+```
+
+所以做标准 mAP 评估时，一般不要把 `conf` 设太高。
+
+#### 计算 Precision 和 Recall
+
+预测是否正确按照 IOU=0.5 的结果判断
+
+1. 按 conf 从高到低排序
+
+2. 每个类别单独累计 TP / FP
+
+3. 得到 precision / recall 曲线
+
+4. 用 IoU=0.5 那一列构造 P-Confidence / R-Confidence 曲线
+
+5. 算 F1-Confidence 曲线
+   $$
+   F1 = \frac {2 \times P \times R}{(P + R)}
+   $$
+   F1 是 Precision 和 Recall 的调和平均，倾向于惩罚那种“一个高一个低”的情况。
+
+   比如：
+
+   | Precision | Recall | F1   |
+   | --------- | ------ | ---- |
+   | 0.95      | 0.20   | 0.33 |
+   | 0.60      | 0.60   | 0.60 |
+   | 0.40      | 0.90   | 0.55 |
+
+   所以 F1 最大的点通常是一个折中点。
+
+6. 找平均 F1 最大的 confidence 阈值
+
+   a. 对所有类别的 F1 按类别求平均
+   b. 对平均 F1 曲线做平滑
+   c. 找到平均 F1 最大的位置 i
+   d. 取这个 confidence 阈值下所有类别的 P/R/F1
+
+7. 取该阈值下每个类别的 P / R
+
+8. 对类别求平均
+
+9. 最终得到类别平均 Precision / Recall
+
+用一个小例子理解
+
+假设某个类别在不同 confidence 阈值下结果是：
+
+| conf 阈值 | Precision | Recall | F1   |
+| --------- | --------- | ------ | ---- |
+| 0.90      | 1.00      | 0.20   | 0.33 |
+| 0.70      | 0.85      | 0.50   | 0.63 |
+| 0.50      | 0.72      | 0.75   | 0.73 |
+| 0.30      | 0.50      | 0.90   | 0.64 |
+| 0.10      | 0.30      | 0.98   | 0.46 |
+
+如果 F1 最大在 `conf=0.50`，那这个类别最终汇总用的就是：
+
+```
+Precision = 0.72
+Recall    = 0.75
+```
+
+不是：
+
+```
+所有 Precision 的平均
+所有 Recall 的平均
+PR 曲线面积
+conf=0.001 时的 P/R
+```
+
+### 总结
+
+detect val 里的最终 `Precision` 和 `Recall` 是基于 IoU=0.5 的 TP/FP 统计，在使所有类别平均 F1 最大的 confidence 阈值处取得的类别平均 Precision 和 Recall。
+
+而 `mAP50` / `mAP50-95` 才是对 PR 曲线做积分得到的 AP/mAP。
+
+ `P/R` 是一个“最佳 F1 点”，`mAP` 是整条曲线的综合表现。
+
+
+
 # [预测](https://docs.ultralytics.com/zh/modes/predict/)
 
 ## 使用示例
