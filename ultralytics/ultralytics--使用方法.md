@@ -1123,9 +1123,10 @@ metrics: DetMetrics = model.val(
 # attrs
 print(f"metrics attrs: {[i for i in dir(metrics) if not i.startswith('__')]}\n")
 
-# confusion_matrix: polars.DataFrame
 metrics_df: pd.DataFrame = metrics.to_df().to_pandas()
-metrics_df.to_csv(metrics.save_dir / "metrics.csv", index=False)
+metrics_df_save_path = metrics.save_dir / "metrics.csv"
+metrics_df.to_csv(metrics_df_save_path, index=False)
+print(f"metrics_df saved to {metrics_df_save_path}")
 ```
 
 cmd
