@@ -1064,15 +1064,26 @@ py
 
 ```python
 from pathlib import Path
-from ultralytics import YOLO
+from ultralytics import YOLO, settings
 from ultralytics.utils.metrics import DetMetrics
 import pandas as pd
+
+
+settings.update(
+    {
+        "tensorboard": True,
+        "datasets_dir": "datasets",
+        "weights_dir": "weights",
+        "runs_dir": "runs",
+    }
+)
 
 
 model_path = Path("weights/yolo11n.pt").resolve()
 data_path = Path("datasets/coco/coco.yaml").resolve()
 project = "myproject"
 name = "coco/yolo11n/val"
+
 
 print(f"{model_path} is exists: {model_path.exists()}")
 print(f"{data_path} is exists: {data_path.exists()}")
@@ -1109,24 +1120,12 @@ metrics: DetMetrics = model.val(
     end2end=None,
 )
 
-# print(f"metrics:\n{metrics}\n")
-
-# map50-95
-print(f"map50-95: {metrics.box.map}\n")
-
-# map50
-print(f"map50: {metrics.box.map50}\n")
-
-# map75
-print(f"map75: {metrics.box.map75}\n")
-
-# a list contains map50-95 of each category
-print(f"maps: {metrics.box.maps}\n")
+# attrs
+print(f"metrics attrs: {[i for i in dir(metrics) if not i.startswith('__')]}\n")
 
 # confusion_matrix: polars.DataFrame
-confusion_matrix_df: pd.DataFrame = metrics.confusion_matrix.to_df().to_pandas()
-confusion_matrix_df.to_csv("confusion_matrix.csv")
-print(f"confusion_matrix:\n{confusion_matrix_df.head()}\n")
+metrics_df: pd.DataFrame = metrics.to_df().to_pandas()
+metrics_df.to_csv(metrics.save_dir / "metrics.csv", index=False)
 ```
 
 cmd
