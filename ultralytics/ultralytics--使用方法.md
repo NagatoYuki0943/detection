@@ -1122,7 +1122,16 @@ metrics: DetMetrics = model.val(
 
 # attrs
 print(f"metrics attrs: {[i for i in dir(metrics) if not i.startswith('__')]}\n")
+print(f"metrics.box attrs: {[i for i in dir(metrics.box) if not i.startswith('__')]}\n")
 
+print(f"map\n:{metrics.box.map}\n")  # mAP50-95
+print(f"map50\n:{metrics.box.map50}\n")  # mAP50
+print(f"map75\n:{metrics.box.map75}\n")  # mAP75
+print(f"maps\n:{metrics.box.maps}\n")  # list of mAP50-95 for each category
+# per-image metrics dictionary with precision, recall, F1, TP, FP, and FN
+print(f"image_metrics\n:{metrics.box.image_metrics}\n")
+
+# confusion_matrix: polars.DataFrame
 metrics_df: pd.DataFrame = metrics.to_df().to_pandas()
 metrics_df_save_path = metrics.save_dir / "metrics.csv"
 metrics_df.to_csv(metrics_df_save_path, index=False)
