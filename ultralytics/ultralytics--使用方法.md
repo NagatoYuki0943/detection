@@ -843,8 +843,8 @@ settings.update(
 yaml_path = Path("ultralytics/cfg/models/11/yolo26n.yaml").resolve()
 model_path = Path("weights/yolo26n.pt").resolve()
 data_path = Path("datasets/coco/coco.yaml").resolve()
-project = "myproject"
-name = "coco/yolo26n/train"
+project = "coco"
+name = "yolo26n/train"
 
 print(f"{yaml_path} is exists: {yaml_path.exists()}")
 print(f"{model_path} is exists: {model_path.exists()}")
@@ -928,42 +928,42 @@ cmd
 
 ```sh
 # Build a new model from YAML and start training from scratch
-yolo detect train data=coco8.yaml model=yolo26n.yaml epochs=100 imgsz=640 project=myproject name=yolo26n/train
+yolo detect train data=coco8.yaml model=yolo26n.yaml epochs=100 imgsz=640 project=coco8 name=yolo26n/train
 
 # Start training from a pretrained *.pt model
-yolo detect train data=coco8.yaml model=yolo26n.pt epochs=100 imgsz=640 project=myproject name=yolo26n/train
+yolo detect train data=coco8.yaml model=yolo26n.pt epochs=100 imgsz=640 project=coco8 name=yolo26n/train
 
 # Build a new model from YAML, transfer pretrained weights to it and start training
-yolo detect train data=coco8.yaml model=yolo26n.yaml pretrained=yolo26n.pt epochs=100 imgsz=640 project=myproject name=yolo26n/train
+yolo detect train data=coco8.yaml model=yolo26n.yaml pretrained=yolo26n.pt epochs=100 imgsz=640 project=coco8 name=yolo26n/train
 ```
 
 > `Multi-GPU Training`
 
 ```sh
 # Start training from a pretrained *.pt model using GPUs 0 and 1
-yolo detect train data=coco8.yaml model=yolo26n.pt epochs=100 imgsz=640 device=0,1 project=myproject name=yolo26n/train
+yolo detect train data=coco8.yaml model=yolo26n.pt epochs=100 imgsz=640 device=0,1 project=coco8 name=yolo26n/train
 ```
 
 > `auto optimizer`
 
 ```sh
-yolo detect train imgsz=640 batch=-1 workers=8 epochs=300 patience=0 close_mosaic=10 fraction=1.0 cos_lr=True device=0 model=ultralytics/cfg/models/11/yolo26n.yaml pretrained=weights/yolo26n.pt data=ultralytics/datasets/coco8.yaml project=myproject name=yolo26n/train
+yolo detect train imgsz=640 batch=-1 workers=8 epochs=300 patience=0 close_mosaic=10 fraction=1.0 cos_lr=True device=0 model=ultralytics/cfg/models/11/yolo26n.yaml pretrained=weights/yolo26n.pt data=ultralytics/datasets/coco8.yaml project=coco8 name=yolo26n/train
 
 #                                                                                                                                model可以直接设置为pt
-yolo detect train imgsz=640 batch=-1 workers=8 epochs=300 patience=0 close_mosaic=10 fraction=1.0 cos_lr=True device=0 model=weights/yolo26n.pt data=ultralytics/cfg/datasets/coco8.yaml project=myproject name=yolo26n/train
+yolo detect train imgsz=640 batch=-1 workers=8 epochs=300 patience=0 close_mosaic=10 fraction=1.0 cos_lr=True device=0 model=weights/yolo26n.pt data=ultralytics/cfg/datasets/coco8.yaml project=coco8 name=yolo26n/train
 
 #                                                        rtdetr 训练轮数更少
-yolo detect train imgsz=640 batch=-1 workers=8 epochs=100 patience=0 close_mosaic=10 fraction=1.0 cos_lr=True device=0 model=ultralytics/cfg/models/rt-detr/rtdetr-x.yaml pretrained=weights/rtdetr-x.pt data=ultralytics/cfg/datasets/coco8.yaml project=myproject name=yolo26n/train
+yolo detect train imgsz=640 batch=-1 workers=8 epochs=100 patience=0 close_mosaic=10 fraction=1.0 cos_lr=True device=0 model=ultralytics/cfg/models/rt-detr/rtdetr-x.yaml pretrained=weights/rtdetr-x.pt data=ultralytics/cfg/datasets/coco8.yaml project=coco8 name=yolo26n/train
 
 #                                                        rtdetr 训练轮数更少                                                       model可以直接设置为pt
-yolo detect train imgsz=640 batch=-1 workers=8 epochs=100 patience=0 close_mosaic=10 fraction=1.0 cos_lr=True device=0 model=weights/rtdetr-x.pt data=ultralytics/cfg/datasets/coco8.yaml project=myproject name=yolo26n/train
+yolo detect train imgsz=640 batch=-1 workers=8 epochs=100 patience=0 close_mosaic=10 fraction=1.0 cos_lr=True device=0 model=weights/rtdetr-x.pt data=ultralytics/cfg/datasets/coco8.yaml project=coco8 name=yolo26n/train
 ```
 
 > `resume`
 
 ```sh
 #                                                                                                                                model=最后的pt
-yolo detect train imgsz=640 batch=-1 workers=8 epochs=300 patience=0 close_mosaic=10 fraction=1.0 cos_lr=True device=0 model=weights/last.pt data=ultralytics/cfg/datasets/coco8.yaml resume=True exist_ok=True project=myproject name=yolo26n/train
+yolo detect train imgsz=640 batch=-1 workers=8 epochs=300 patience=0 close_mosaic=10 fraction=1.0 cos_lr=True device=0 model=weights/last.pt data=ultralytics/cfg/datasets/coco8.yaml resume=True exist_ok=True project=coco8 name=yolo26n/train
 ```
 
 ## **不需要在模型配置中显示更改类别数**
@@ -1192,8 +1192,8 @@ settings.update(
 
 model_path = Path("weights/yolo26n.pt").resolve()
 data_path = Path("datasets/coco/coco.yaml").resolve()
-project = "myproject"
-name = "coco/yolo26n/val"
+project = "coco"
+name = "yolo26n/val"
 
 
 print(f"{model_path} is exists: {model_path.exists()}")
@@ -1252,7 +1252,7 @@ print(f"metrics_df saved to {metrics_df_save_path}")
 cmd
 
 ```sh
-yolo detect val imgsz=640 save_json=True save_txt=True save_conf=True conf=0.25 iou=0.7 data=ultralytics/cfg/datasets/coco8.yaml model=weights/yolo26n.pt device=0 project=myproject name=yolo26n/val
+yolo detect val imgsz=640 save_json=True save_txt=True save_conf=True conf=0.25 iou=0.7 data=ultralytics/cfg/datasets/coco8.yaml model=weights/yolo26n.pt device=0 project=coco8 name=yolo26n/val
 ```
 
 ## 验证原理
@@ -2351,8 +2351,8 @@ settings.update(
 model_path = Path("weights/yolo26n.pt").resolve()
 source = Path("datasets/coco/images/val2017/000000000139.jpg").resolve()
 source = Path("datasets/coco/images/val2017/").resolve()
-project = "myproject"
-name = "coco/yolo26n/predict"
+project = "coco"
+name = "yolo26n/predict"
 
 print(f"{model_path} is exists: {model_path.exists()}")
 print(f"{source} is exists: {source.exists()}")
@@ -2425,9 +2425,9 @@ for result in results:
 > CLI
 
 ```sh
-yolo detect predict imgsz=640 save=True save_txt=True save_conf=True save_crop=True conf=0.25 iou=0.7 data=ultralytics/cfg/datasets/coco8.yaml model=weights/yolo26n.pt source=ultralytics/assets/bus.jpg device=0 project=myproject name=yolo26n/predict
+yolo detect predict imgsz=640 save=True save_txt=True save_conf=True save_crop=True conf=0.25 iou=0.7 data=ultralytics/cfg/datasets/coco8.yaml model=weights/yolo26n.pt source=ultralytics/assets/bus.jpg device=0 project=coco8 name=yolo26n/predict
 
-yolo detect predict imgsz=640 save=True save_txt=True save_conf=True save_crop=True conf=0.25 iou=0.7 data=ultralytics/cfg/datasets/coco8.yaml model=weights/yolo26n.pt source=../datasets/coco8/images/train2017 device=0 project=myproject name=yolo26n/predict
+yolo detect predict imgsz=640 save=True save_txt=True save_conf=True save_crop=True conf=0.25 iou=0.7 data=ultralytics/cfg/datasets/coco8.yaml model=weights/yolo26n.pt source=../datasets/coco8/images/train2017 device=0 project=coco8 name=yolo26n/predict
 ```
 
 ### yolo-world
@@ -2445,8 +2445,8 @@ from ultralytics.engine.results import Results
 model_path = Path("weights/yolov8x-worldv2.pt").resolve()
 source = Path("datasets/coco/images/val2017/000000000139.jpg").resolve()
 source = Path("datasets/coco/images/val2017/").resolve()
-project = "myproject"
-name = "coco/yolo-world/yolov8x-worldv2/predict"
+project = "coco"
+name = "yolo-world/yolov8x-worldv2/predict"
 
 print(f"{model_path} is exists: {model_path.exists()}")
 print(f"{source} is exists: {source.exists()}")
@@ -2537,14 +2537,14 @@ use_prompt = False  # prompt based (optional)
 if use_prompt:
     # 文本/视觉提示模型
     model_path = Path("weights/yoloe-26x-seg.pt").resolve()
-    name = "coco/yoloe/yoloe-26x-seg/predict"
+    name = "yoloe/yoloe-26x-seg/predict"
 else:
     # 无提示词模型
     model_path = Path("weights/yoloe-26x-seg-pf.pt").resolve()
-    name = "coco/yoloe/yoloe-26x-seg-pf/predict"
+    name = "yoloe/yoloe-26x-seg-pf/predict"
 source = Path("datasets/coco/images/val2017/000000000139.jpg").resolve()
 source = Path("datasets/coco/images/val2017/").resolve()
-project = "myproject"
+project = "coco"
 
 
 print(f"{model_path} is exists: {model_path.exists()}")
@@ -2796,7 +2796,7 @@ elif export_type == "tensorrt":
 cmd
 
 ```sh
-yolo detect export imgsz=640 model=weights/yolo26n.pt format=onnx simplify=True device=0 project=myproject
+yolo detect export imgsz=640 model=weights/yolo26n.pt format=onnx simplify=True device=0 project=coco8
 ```
 
 # [跟踪](https://docs.ultralytics.com/zh/modes/track/)
@@ -3141,8 +3141,8 @@ settings.update(
 
 model_path = Path("weights/yolov8x-worldv2.pt").resolve()
 source = Path("datasets/videoss/traffic monitor.mp4").resolve()
-project = "myproject"
-name = "traffic monitor/yolov8x-worldv2/track"
+project = "traffic monitor"
+name = "yolov8x-worldv2/track"
 
 print(f"{model_path} is exists: {model_path.exists()}")
 print(f"{source} is exists: {source.exists()}")
