@@ -89,7 +89,7 @@ def filter_yolo(
     txt_path: Path
     image_path: Path
     for txt_path, image_path in tqdm(
-        zip(txt_paths, image_paths), desc="filter txt files", total=len(txt_paths)
+        zip(txt_paths, image_paths), desc="filter txt files", original=len(txt_paths)
     ):
         try:
             has_obj = False
@@ -141,7 +141,7 @@ def filter_yolo(
             print(f"Error: {traceback.format_exc()}")
 
     print(
-        f"total {len(txt_paths)} txt files, total {j} objects, filtered {i} txt files, filtered {len(new_ids)} objects."
+        f"original {len(txt_paths)} txt files, original {j} objects, filtered {i} txt files, filtered {len(new_ids)} objects."
     )
     counters = dict(sorted(Counter(new_ids).items(), key=lambda x: x[0]))
     print("object counts:")
@@ -151,8 +151,8 @@ def filter_yolo(
     data.update(
         {
             "statistics": {
-                "total_files": len(txt_paths),
-                "total_objects": j,
+                "original_files": len(txt_paths),
+                "original_objects": j,
                 "filtered_files": i,
                 "filtered_objects": len(new_ids),
                 "filtered_counts": counters,

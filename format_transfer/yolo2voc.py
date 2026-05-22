@@ -148,7 +148,7 @@ def yolo2voc(
             with open(txt_path, "r", encoding="utf-8") as f:
                 for line in f.readlines():
                     _line = line.rstrip().split(" ")
-                    if len(_line) != 5:
+                    if len(_line) < 5:
                         continue
                     _id = int(_line[0])
                     if _id not in id2name:
@@ -171,7 +171,7 @@ def yolo2voc(
             writer = VOCWriter(image_path, w, h)
 
             for line in lines:
-                label, x_center, y_center, width, height = line
+                label, x_center, y_center, width, height = line[:5]
                 _id = int(label)
                 if _id not in id2name:
                     continue

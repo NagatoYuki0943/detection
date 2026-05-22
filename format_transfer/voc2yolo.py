@@ -136,38 +136,19 @@ def voc2yolo(
             print(f"Error: {traceback.format_exc()}")
 
 
-# if __name__ == "__main__":
-#     # 原本的 xml 文件夹, 支持多个目录
-#     xml_dirs = [
-#         "../VOC/xmls/test2007",
-#     ]
-#     # 原本图片文件夹, 支持多个目录
-#     image_dirs = [
-#         "../VOC/images/test2007",
-#     ]
-#     # 新的 txt 文件夹, 会将全部的转换后的 txt 文件放到这个文件夹下
-#     new_txt_dir = "../VOC/labels/test2007-1"
-#     # yaml 配置路径
-#     yaml_path = "../VOC/VOC.yaml"
-#     name2id = load_name2id_from_yaml(yaml_path)
-#     # 新的图片文件夹, 会把全部图片放在这个文件夹下, 如果为 None 则不复制图片
-#     new_image_dir = None
-
-#     voc2yolo(xml_dirs, image_dirs, new_txt_dir, name2id, new_image_dir)
-
 if __name__ == "__main__":
     # 原本的 xml 文件夹, 支持多个目录
     xml_dirs = [
-        "C:/ml/code/dataset/person--sample/val/xmls",
+        "../VOC/xmls/test2007",
     ]
     # 原本图片文件夹, 支持多个目录
     image_dirs = [
-        "C:/ml/code/dataset/person--sample/val/images",
+        "../VOC/images/test2007",
     ]
     # 新的 txt 文件夹, 会将全部的转换后的 txt 文件放到这个文件夹下
-    new_txt_dir = "C:/ml/code/dataset/person--sample/val/labels"
+    new_txt_dir = "../VOC/labels/test2007-1"
     # yaml 配置路径
-    yaml_path = "C:/ml/code/dataset/person--sample/data.yaml"
+    yaml_path = "../VOC/VOC.yaml"
     name2id = load_name2id_from_yaml(yaml_path)
     # 新的图片文件夹, 会把全部图片放在这个文件夹下, 如果为 None 则不复制图片
     new_image_dir = None

@@ -100,7 +100,7 @@ def filter_voc(
     xml_path: Path
     image_path: Path
     for xml_path, image_path in tqdm(
-        zip(xml_paths, image_paths), desc="filter xml files", total=len(xml_paths)
+        zip(xml_paths, image_paths), desc="filter xml files", original=len(xml_paths)
     ):
         try:
             with open(xml_path, "r", encoding="utf-8") as in_file:
@@ -183,7 +183,7 @@ def filter_voc(
             print(f"Error: {traceback.format_exc()}")
 
     print(
-        f"total {len(xml_paths)} xml files, total {j} objects, filtered {i} xml files, filtered {len(new_names)} objects."
+        f"original {len(xml_paths)} xml files, original {j} objects, filtered {i} xml files, filtered {len(new_names)} objects."
     )
     counters = dict(sorted(Counter(new_names).items(), key=lambda x: x[0]))
     print("object counts:")
@@ -193,8 +193,8 @@ def filter_voc(
     data.update(
         {
             "statistics": {
-                "total_files": len(xml_paths),
-                "total_objects": j,
+                "original_files": len(xml_paths),
+                "original_objects": j,
                 "filtered_files": i,
                 "filtered_objects": len(new_names),
                 "filtered_counts": counters,

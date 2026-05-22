@@ -48,7 +48,7 @@ def fetch_voc(
 
     print(f"total {len(xml_paths)} xml files, {len(names)} objects")
     counters = dict(sorted(Counter(names).items(), key=lambda x: x[0]))
-    print("object counts:")
+    print("objects per class:")
     for name, count in counters.items():
         print(f"    {name}: {count}")
 
@@ -57,9 +57,9 @@ def fetch_voc(
         data = {
             "names": {i: name for i, name in enumerate(counters)},
             "statistics": {
-                "total_files": len(xml_paths),
-                "total_objects": i,
-                "counts": counters,
+                "files": len(xml_paths),
+                "objects": i,
+                "objects_per_class": counters,
             },
         }
         with open(yaml_path, mode="w", encoding="utf-8") as f:

@@ -1,0 +1,58 @@
+# voc
+
+```python
+if __name__ == "__main__":
+    # 原本 xml 文件路径, 支持多个目录
+    xml_dirs = [
+        "../VOC/xmls/test2007",
+        "../VOC/xmls/train2007",
+        "../VOC/xmls/train2012",
+        "../VOC/xmls/val2007",
+        "../VOC/xmls/val2012",
+    ]
+    # 原本图片文件路径, 支持多个目录, 但是要和 xml_dirs 一一匹配
+    image_dirs = [
+        "../VOC/images/test2007",
+        "../VOC/images/train2007",
+        "../VOC/images/train2012",
+        "../VOC/images/val2007",
+        "../VOC/images/val2012",
+    ]
+    # 过滤后的 xmls 和 images 的存放路径, 里面会有 xmls 和 images 文件夹, 用来存放全部过滤后的数据
+    filtered_save_dir = "../VOC--filtered--voc-format"
+
+    # 保留的类别
+    keep_names = ["bicycle", "bird", "bus", "car", "cat", "dog", "motorbike", "person"]
+
+    # 类别的重映射
+    name_remap = {i: i for i in keep_names}
+
+    filter_voc(xml_dirs, image_dirs, filtered_save_dir, keep_names, name_remap)
+```
+
+
+# coco
+
+```python
+if __name__ == "__main__":
+    # 原本 xml 文件路径, 支持多个目录
+    xml_dirs = [
+        "../coco/xmls/train2017",
+        "../coco/xmls/val2017",
+    ]
+    # 原本图片文件路径, 支持多个目录, 但是要和 xml_dirs 一一匹配
+    image_dirs = [
+        "../coco/images/train2017",
+        "../coco/images/val2017",
+    ]
+    # 过滤后的 xmls 和 images 的存放路径, 里面会有 xmls 和 images 文件夹, 用来存放全部过滤后的数据
+    filtered_save_dir = "../coco--filtered--voc-format"
+
+    # 保留的类别
+    keep_names = ["bicycle", "bird", "bus", "car", "cat", "dog", "motorcycle", "person", "truck"]
+
+    # 类别的重映射
+    name_remap = {i: i for i in keep_names}
+
+    filter_voc(xml_dirs, image_dirs, filtered_save_dir, keep_names, name_remap)
+```

@@ -44,7 +44,7 @@ def fetch_yolo(
 
     print(f"total {len(txt_paths)} txt files, {len(ids)} objects")
     counters = dict(sorted(Counter(ids).items(), key=lambda x: x[0]))
-    print("object counts:")
+    print("objects per class:")
     for _id, count in counters.items():
         print(f"    {_id}: {count}")
 
@@ -53,9 +53,9 @@ def fetch_yolo(
         data = {
             "names": {i: name for i, name in enumerate(counters)},
             "statistics": {
-                "total_files": len(txt_paths),
-                "total_objects": i,
-                "counts": counters,
+                "files": len(txt_paths),
+                "objects": i,
+                "objects_per_class": counters,
             },
         }
         with open(yaml_path, mode="w", encoding="utf-8") as f:

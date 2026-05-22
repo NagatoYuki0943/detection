@@ -172,12 +172,16 @@ def sample_voc(
         "val": ["val/images"],
         "names": {i: name for i, name in enumerate(sorted(unqiue_val_names))},
         "statistics": {
-            "train_files": len(train_xml_paths),
-            "train_objects": k,
-            "train_counts": train_counters,
-            "val_files": len(val_xml_paths),
-            "val_objects": j,
-            "val_counts": val_counters,
+            "train": {
+                "files": len(train_xml_paths),
+                "objects": k,
+                "objects_per_class": train_counters,
+            },
+            "val": {
+                "files": len(val_xml_paths),
+                "objects": j,
+                "objects_per_class": val_counters,
+            },
         },
     }
     new_yaml_path = sample_dir / "data.yaml"
@@ -218,47 +222,20 @@ def sample_voc(
             print(f"Error: {traceback.format_exc()}")
 
 
-# if __name__ == "__main__":
-#     # 原本 xml 文件路径
-#     xml_dirs = [
-#         "../VOC/xmls/test2007",
-#     ]
-#     # 原本图片文件路径
-#     image_dirs = [
-#         "../VOC/images/test2007",
-#     ]
-#     # 采样后的路径, 包含 train 和 val 两个文件夹, 以及对应的 xmls 和 images 文件夹, 用来存放全部采样后的数据
-#     sample_dir = "../VOC/test2007--sample--voc"
-#     # 验证集占比
-#     val_percent = 0.1
-#     # 划分数据集时每个类别的最小数量, 如果数据集太少不一定能保证, 需要调整这个值
-#     object_min_num = 10
-#     # 随机种子, 保证可以复现, None 代表不设置
-#     seed = None
-
-#     sample_voc(xml_dirs, image_dirs, sample_dir, val_percent, object_min_num, seed)
-
 if __name__ == "__main__":
     # 原本 xml 文件路径
     xml_dirs = [
-        "C:/ml/code/dataset/CrowdHuman--person--filtered--voc-format/xmls",
-        "C:/ml/code/dataset/coco--person--filtered--voc-format/xmls",
-        "C:/ml/code/dataset/VOC--person--filtered--voc-format/xmls",
+        "../VOC/xmls/test2007",
     ]
     # 原本图片文件路径
     image_dirs = [
-        "C:/ml/code/dataset/CrowdHuman--person--filtered--voc-format/images",
-        "C:/ml/code/dataset/coco--person--filtered--voc-format/images",
-        "C:/ml/code/dataset/VOC--person--filtered--voc-format/images",
+        "../VOC/images/test2007",
     ]
     # 采样后的路径, 包含 train 和 val 两个文件夹, 以及对应的 xmls 和 images 文件夹, 用来存放全部采样后的数据
-    sample_dir = "C:/ml/code/dataset/person--sample"
+    sample_dir = "../VOC/test2007--sample--voc"
     # 验证集占比
     val_percent = 0.1
     # 划分数据集时每个类别的最小数量, 如果数据集太少不一定能保证, 需要调整这个值
     object_min_num = 10
     # 随机种子, 保证可以复现, None 代表不设置
     seed = None
-
-    sample_voc(xml_dirs, image_dirs, sample_dir, val_percent, object_min_num, seed)
-

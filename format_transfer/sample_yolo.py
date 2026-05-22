@@ -163,12 +163,16 @@ def sample_yolo(
         "val": ["val/images"],
         "names": {i: name for i, name in enumerate(sorted(unqiue_val_ids))},
         "statistics": {
-            "train_files": len(train_txt_paths),
-            "train_objects": k,
-            "train_counts": train_counters,
-            "val_files": len(val_txt_paths),
-            "val_objects": j,
-            "val_counts": val_counters,
+            "train": {
+                "files": len(train_txt_paths),
+                "objects": k,
+                "objects_per_class": train_counters,
+            },
+            "val": {
+                "files": len(val_txt_paths),
+                "objects": j,
+                "objects_per_class": val_counters,
+            },
         },
     }
     new_yaml_path = sample_dir / "data.yaml"
@@ -225,6 +229,6 @@ if __name__ == "__main__":
     # 划分数据集时每个类别的最小数量, 如果数据集太少不一定能保证, 需要调整这个值
     object_min_num = 10
     # 随机种子, 保证可以复现, None 代表不设置
-    seed = None
+    seed = 0
 
     sample_yolo(txt_dirs, image_dirs, sample_dir, val_percent, object_min_num, seed)
