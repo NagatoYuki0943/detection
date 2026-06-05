@@ -2648,38 +2648,38 @@ yolo export model=path/to/best.pt format=onnx # export custom-trained model
 
 ## 参数
 
-此表详细说明了将 YOLO 模型导出为不同格式时可用的配置和选项。这些设置对于优化导出模型的性能、大小以及在各种平台和环境下的兼容性至关重要。正确的配置可确保模型能够以最佳效率部署到目标应用中。
+下表详细说明了将 YOLO 模型导出为不同格式时可用的配置和选项。这些设置对于优化导出模型的性能、大小以及在各种平台和环境中的兼容性至关重要。正确的配置可确保模型能够以最佳效率部署到预期应用中。
 
 | 参数        | 类型              | 默认值          | 描述                                                         |
 | :---------- | :---------------- | :-------------- | :----------------------------------------------------------- |
-| `format`    | `str`             | `'torchscript'` | 导出模型的目标格式，例如 `'onnx'`、`'torchscript'`、`'engine'` (TensorRT) 等。每种格式都能与不同的 [部署环境](https://docs.ultralytics.com/modes/export) 兼容。 |
-| `imgsz`     | `int` 或 `tuple`  | `640`           | 模型输入的期望图像大小。可以是正方形图像的整数（例如 `640` 表示 640×640），也可以是特定尺寸的元组 `(height, width)`。 |
+| `format`    | `str`             | `'torchscript'` | 导出模型的目标格式，例如 `'onnx'`、`'torchscript'`、`'engine'` (TensorRT) 等。每种格式都能实现与不同 [部署环境](https://docs.ultralytics.com/modes/export) 的兼容性。 |
+| `imgsz`     | `int` 或 `tuple`  | `640`           | 模型输入所需的图像大小。可以是代表方形图像的整数（例如，`640` 表示 640×640），也可以是用于特定维度的元组 `(height, width)`。 |
 | `keras`     | `bool`            | `False`         | 启用导出为 [TensorFlow](https://www.ultralytics.com/glossary/tensorflow) SavedModel 的 Keras 格式，提供与 TensorFlow 服务和 API 的兼容性。 |
-| `optimize`  | `bool`            | `False`         | 在导出为 TorchScript 时应用针对移动设备的优化，这可以减小模型大小并提高 [推理](https://docs.ultralytics.com/modes/predict) 性能。与 NCNN 格式或 CUDA 设备不兼容。对于 DeepX，启用更高级的编译器优化，这会减少推理延迟但会增加编译时间。 |
-| `half`      | `bool`            | `False`         | 启用 FP16（半精度）量化，减小模型大小并可能加快支持硬件上的推理速度。与 INT8 量化或仅 CPU 导出不兼容。仅适用于特定格式，例如 ONNX（见下文）。 |
-| `int8`      | `bool`            | `False`         | 激活 INT8 量化，进一步压缩模型并以最小的 [准确度](https://www.ultralytics.com/glossary/accuracy) 损失加速推理，主要用于 [边缘设备](https://www.ultralytics.com/blog/understanding-the-real-world-applications-of-edge-ai)。与 TensorRT 一起使用时，执行训练后量化 (PTQ)。 |
-| `dynamic`   | `bool`            | `False`         | 允许 TorchScript、ONNX、OpenVINO、TensorRT 和 CoreML 导出支持动态输入大小，从而增强处理不同图像尺寸的灵活性。当在 TensorRT 中使用 INT8 时，此项自动设置为 `True`。 |
-| `simplify`  | `bool`            | `True`          | 使用 `onnxslim` 简化 ONNX 导出的模型图，潜在地提高性能和与推理引擎的兼容性。 |
-| `opset`     | `int`             | `None`          | 指定 ONNX opset 版本，以与不同的 [ONNX](https://docs.ultralytics.com/integrations/onnx) 解析器和运行时兼容。如果未设置，则使用最新支持的版本。 |
-| `workspace` | `float` 或 `None` | `None`          | 设置 [TensorRT](https://docs.ultralytics.com/integrations/tensorrt) 优化的最大工作空间大小（以 GiB 为单位），从而平衡内存使用和性能。使用 `None` 可让 TensorRT 自动分配，最高可达设备上限。 |
-| `nms`       | `bool`            | `False`         | 在支持的情况下（请参阅 [导出格式](https://docs.ultralytics.com/modes/export)），将非极大值抑制 (NMS) 添加到导出模型中，从而提高检测后处理效率。端到端模型不可用。 |
-| `batch`     | `int`             | `1`             | 指定导出模型的批量推理大小，或者在 `predict` 模式下导出的模型将同时处理的最大图像数量。对于 Edge TPU 导出，此项自动设置为 1。 |
-| `device`    | `str`             | `None`          | 指定用于导出的设备：GPU (`device=0`)、CPU (`device=cpu`)、Apple 芯片的 MPS (`device=mps`)、华为昇腾 NPU (`device=npu` 或 `device=npu:0`) 或 NVIDIA Jetson 的 DLA (`device=dla:0` 或 `device=dla:1`)。TensorRT 导出将自动使用 GPU。 |
-| `data`      | `str`             | `'coco8.yaml'`  | [数据集](https://docs.ultralytics.com/datasets)配置文件的路径，这对 INT8 量化校准至关重要。如果在启用 INT8 时未指定，将使用 `coco8.yaml` 作为校准的备选。 |
-| `fraction`  | `float`           | `1.0`           | 指定用于 INT8 量化校准的数据集比例。允许在完整数据集的子集上进行校准，这对于实验或资源受限时非常有用。如果在启用 INT8 时未指定，将使用完整数据集。 |
-| `end2end`   | `bool`            | `None`          | 覆盖支持无 NMS 推理的 YOLO 模型（YOLO26, YOLOv10）中的端到端模式。将其设置为 `False`，你可以将这些模型导出为兼容传统的基于 NMS 的后处理流水线。详情请参阅 [端到端检测指南](https://docs.ultralytics.com/zh/guides/end2end-detection)。 |
+| `optimize`  | `bool`            | `False`         | 在导出为 TorchScript 时应用移动设备优化，从而减小模型大小并提升 [推理](https://docs.ultralytics.com/modes/predict) 性能。与 NCNN 格式或 CUDA 设备不兼容。对于 DEEPX，启用更高级的编译器优化，可缩短推理延迟并增加编译时间。 |
+| `half`      | `bool`            | `False`         | 启用 FP16（半精度）量化，减小模型大小并可能在受支持的硬件上加速推理。与 INT8 量化或仅 CPU 导出不兼容。仅适用于某些格式，例如 ONNX（见下文）。 |
+| `int8`      | `bool`            | `False`         | 激活 INT8 量化，进一步压缩模型并在最小化 [准确度](https://www.ultralytics.com/glossary/accuracy) 损失的情况下加速推理，主要针对 [边缘设备](https://www.ultralytics.com/blog/understanding-the-real-world-applications-of-edge-ai)。与 TensorRT 一起使用时，执行训练后量化 (PTQ)。 |
+| `dynamic`   | `bool`            | `False`         | 允许 TorchScript、ONNX、OpenVINO、TensorRT 和 CoreML 导出具有动态输入大小，从而在处理不同图像维度时提高灵活性。在将 TensorRT 与 INT8 一起使用时，会自动设置为 `True`。 |
+| `simplify`  | `bool`            | `True`          | 使用 `onnxslim` 简化 ONNX 导出的模型图，从而提升性能以及与推理引擎的兼容性。 |
+| `opset`     | `int`             | `None`          | 指定 ONNX opset 版本，以实现与不同 [ONNX](https://docs.ultralytics.com/integrations/onnx) 解析器和运行时的兼容性。如果未设置，则使用支持的最新版本。 |
+| `workspace` | `float` 或 `None` | `None`          | 设置 [TensorRT](https://docs.ultralytics.com/integrations/tensorrt) 优化的最大工作空间大小（以 GiB 为单位），平衡内存使用和性能。对于 TensorRT 的自动分配（最大至设备极限），请使用 `None`。 |
+| `nms`       | `bool`            | `False`         | 在受支持时为导出模型添加非极大值抑制 (NMS)（请参阅 [导出格式](https://docs.ultralytics.com/modes/export)），从而提高检测后处理效率。不适用于端到端模型。 |
+| `batch`     | `int`             | `1`             | 指定导出模型的批量推理大小，或者导出模型在 `predict` 模式下并发处理的最大图像数量。对于 Edge TPU 导出，此值会自动设置为 1。 |
+| `device`    | `str`             | `None`          | 指定导出设备：GPU (`device=0`)、CPU (`device=cpu`)、Apple 芯片的 MPS (`device=mps`)、华为昇腾 NPU (`device=npu` 或 `device=npu:0`) 或 NVIDIA Jetson 的 DLA (`device=dla:0` 或 `device=dla:1`)。TensorRT 导出会自动使用 GPU。 |
+| `data`      | `str`             | `'coco8.yaml'`  | [数据集](https://docs.ultralytics.com/datasets)配置文件路径，对于 INT8 量化校准至关重要。如果在启用 INT8 时未指定，则默认使用 `coco8.yaml` 进行校准。 |
+| `fraction`  | `float`           | `1.0`           | 指定用于 INT8 量化校准的数据集比例。允许在完整数据集的子集上进行校准，这对于实验或资源有限时非常有用。如果在启用 INT8 时未指定，则使用完整数据集。 |
+| `end2end`   | `bool`            | `None`          | 覆盖支持无 NMS 推理的 YOLO 模型（YOLO26、YOLOv10）中的端到端模式。将其设置为 `False`，你可以将这些模型导出为与传统基于 NMS 的后处理流水线兼容的格式。详见 [端到端检测指南](https://docs.ultralytics.com/zh/guides/end2end-detection)。 |
 
-调整这些参数可以自定义导出过程，以符合特定需求，如部署环境、硬件限制和性能目标。选择合适的格式和设置对于在模型大小、速度和 [准确率](https://www.ultralytics.com/glossary/accuracy) 之间取得最佳平衡至关重要。
+调整这些参数可以定制导出过程，以满足特定需求，例如部署环境、硬件约束和性能目标。选择合适的格式和设置对于在模型大小、速度和 [准确度](https://www.ultralytics.com/glossary/accuracy) 之间取得最佳平衡至关重要。
 
 ## 导出格式
 
-可用的 YOLO26 导出格式如下表所示。你可以使用 `format` 参数导出为任何格式，例如 `format='onnx'` 或 `format='engine'`。你可以直接在导出的模型上进行预测或验证，例如 `yolo predict model=yolo26n.onnx`。模型导出完成后，系统会向你展示使用示例。模型也可以直接在 [Ultralytics Platform](https://platform.ultralytics.com/) 上从浏览器导出，无需任何本地设置。
+下表列出了可用的 YOLO26 导出格式。你可以使用 `format` 参数导出到任何格式，例如 `format='onnx'` 或 `format='engine'`。你可以在导出的模型上直接进行预测或验证，例如 `yolo predict model=yolo26n.onnx`。导出完成后，会为你的模型显示使用示例。模型也可以直接在 [Ultralytics Platform](https://platform.ultralytics.com/) 上从浏览器导出，无需任何本地设置。
 
 | 格式                                                         | `format` 参数 | 模型                        | 元数据 | 参数                                                         |
 | :----------------------------------------------------------- | :------------ | :-------------------------- | :----- | :----------------------------------------------------------- |
 | [PyTorch](https://pytorch.org/)                              | -             | `yolo26n.pt`                | ✅      | -                                                            |
 | [TorchScript](https://docs.ultralytics.com/zh/integrations/torchscript) | `torchscript` | `yolo26n.torchscript`       | ✅      | `imgsz`, `half`, `dynamic`, `optimize`, `nms`, `batch`, `device` |
-| [ONNX](https://docs.ultralytics.com/zh/integrations/onnx)    | `onnx`        | `yolo26n.onnx`              | ✅      | `imgsz`, `half`, `dynamic`, `simplify`, `opset`, `nms`, `batch`, `device` |
+| [ONNX](https://docs.ultralytics.com/zh/integrations/onnx)    | `onnx`        | `yolo26n.onnx`              | ✅      | `imgsz`, `half`, `int8`, `dynamic`, `simplify`, `opset`, `nms`, `batch`, `data`, `fraction`, `device` |
 | [OpenVINO](https://docs.ultralytics.com/zh/integrations/openvino) | `openvino`    | `yolo26n_openvino_model/`   | ✅      | `imgsz`, `half`, `dynamic`, `int8`, `nms`, `batch`, `data`, `fraction`, `device` |
 | [TensorRT](https://docs.ultralytics.com/zh/integrations/tensorrt) | `engine`      | `yolo26n.engine`            | ✅      | `imgsz`, `half`, `dynamic`, `simplify`, `workspace`, `int8`, `nms`, `batch`, `data`, `fraction`, `device` |
 | [CoreML](https://docs.ultralytics.com/zh/integrations/coreml) | `coreml`      | `yolo26n.mlpackage`         | ✅      | `imgsz`, `dynamic`, `half`, `int8`, `nms`, `batch`, `device` |
@@ -2692,10 +2692,11 @@ yolo export model=path/to/best.pt format=onnx # export custom-trained model
 | [MNN](https://docs.ultralytics.com/zh/integrations/mnn)      | `mnn`         | `yolo26n.mnn`               | ✅      | `imgsz`, `batch`, `int8`, `half`, `device`                   |
 | [NCNN](https://docs.ultralytics.com/zh/integrations/ncnn)    | `ncnn`        | `yolo26n_ncnn_model/`       | ✅      | `imgsz`, `half`, `batch`, `device`                           |
 | [IMX500](https://docs.ultralytics.com/zh/integrations/sony-imx500) | `imx`         | `yolo26n_imx_model/`        | ✅      | `imgsz`, `int8`, `data`, `fraction`, `nms`, `device`         |
-| [RKNN](https://docs.ultralytics.com/zh/integrations/rockchip-rknn) | `rknn`        | `yolo26n_rknn_model/`       | ✅      | `imgsz`, `batch`, `name`, `device`                           |
+| [RKNN](https://docs.ultralytics.com/zh/integrations/rockchip-rknn) | `rknn`        | `yolo26n_rknn_model/`       | ✅      | `imgsz`, `batch`, `name`, `int8`, `data`, `fraction`, `device` |
 | [ExecuTorch](https://docs.ultralytics.com/zh/integrations/executorch) | `executorch`  | `yolo26n_executorch_model/` | ✅      | `imgsz`, `batch`, `device`                                   |
 | [Axelera](https://docs.ultralytics.com/zh/integrations/axelera) | `axelera`     | `yolo26n_axelera_model/`    | ✅      | `imgsz`, `batch`, `int8`, `data`, `fraction`, `device`       |
-| [DeepX](https://docs.ultralytics.com/zh/integrations/deepx)  | `deepx`       | `yolo26n_deepx_model/`      | ✅      | `imgsz`, `int8`, `data`, `optimize`, `device`                |
+| [DEEPX](https://docs.ultralytics.com/zh/integrations/deepx)  | `deepx`       | `yolo26n_deepx_model/`      | ✅      | `imgsz`, `int8`, `data`, `optimize`, `device`                |
+| [Qualcomm QNN](https://docs.ultralytics.com/zh/integrations/qnn) | `qnn`         | `yolo26n_qnn_model/`        | ✅      | `imgsz`, `batch`, `name`, `int8`, `data`, `fraction`, `device` |
 
 ## Example
 
@@ -2761,6 +2762,8 @@ elif export_type == "onnx":
         opset=None,
         nms=nms,
         batch=batch,
+        int8=int8,
+        data=data_path,
         device="cpu",
     )
 elif export_type == "openvino":
