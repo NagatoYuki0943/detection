@@ -2760,9 +2760,9 @@ elif export_type == "onnx":
         dynamic=dynamic,
         simplify=True,
         opset=None,
+        int8=int8,
         nms=nms,
         batch=batch,
-        int8=int8,
         data=data_path,
         device="cpu",
     )
