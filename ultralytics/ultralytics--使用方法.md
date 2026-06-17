@@ -2794,6 +2794,14 @@ elif export_type == "tensorrt":
         fraction=1.0,
         device=0,
     )
+elif export_type == "ncnn":
+    model.export(
+        format="ncnn",
+        imgsz=imgsz,
+        half=half,
+        batch=batch,
+        device="cpu",
+    )
 ```
 
 cmd
