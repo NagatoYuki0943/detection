@@ -2708,7 +2708,17 @@ py
 
 ```py
 from pathlib import Path
-from ultralytics import YOLO
+from ultralytics import YOLO, settings
+
+
+settings.update(
+    {
+        "tensorboard": True,
+        "datasets_dir": "datasets",
+        "weights_dir": "weights",
+        "runs_dir": "runs",
+    }
+)
 
 
 model_path = Path("weights/yolo26n.pt").resolve()
