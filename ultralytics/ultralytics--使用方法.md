@@ -2708,17 +2708,7 @@ py
 
 ```py
 from pathlib import Path
-from ultralytics import YOLO, settings
-
-
-settings.update(
-    {
-        "tensorboard": True,
-        "datasets_dir": "datasets",
-        "weights_dir": "weights",
-        "runs_dir": "runs",
-    }
-)
+from ultralytics import YOLO
 
 
 model_path = Path("weights/yolo26n.pt").resolve()
@@ -2726,17 +2716,19 @@ data_path = Path("datasets/coco/coco.yaml").resolve()
 
 print(f"{model_path} is exists: {model_path.exists()}")
 print(f"{data_path} is exists: {data_path.exists()}")
+model_path = str(model_path)
+data_path = str(data_path)
 
 # Load a model
 model = YOLO(model_path, task="detect")
 
 
-export_type = "onnx"
-imgsz = 640
+export_type = "saved_model"
+imgsz = [640, 640]
 half = False
 dynamic = False
 nms = False
-int8 = False
+int8 = True
 batch = 1
 
 
@@ -2776,7 +2768,7 @@ elif export_type == "openvino":
         nms=nms,
         batch=batch,
         data=data_path,
-        fraction=1.0,
+        fraction=0.1,
         device="cpu",
     )
 elif export_type == "tensorrt":
@@ -2791,7 +2783,7 @@ elif export_type == "tensorrt":
         nms=nms,
         batch=batch,
         data=data_path,
-        fraction=1.0,
+        fraction=0.1,
         device=0,
     )
 elif export_type == "ncnn":
@@ -2802,6 +2794,24 @@ elif export_type == "ncnn":
         batch=batch,
         device="cpu",
     )
+elif export_type == "saved_model":
+    model.export(
+        format="saved_model",
+        imgsz=imgsz,
+        keras=True,
+        int8=int8,
+        nms=nms,
+        batch=batch,
+        data=data_path,
+        fraction=0.1,
+        device="cpu",
+        # end2end may have bugs with int8
+        end2end=True if not int8 else False,
+    )
+else:
+    print("Unsupported export type")
+
+print("Model exported successfully")
 ```
 
 cmd
