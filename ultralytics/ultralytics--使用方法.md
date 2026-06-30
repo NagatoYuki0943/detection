@@ -2850,6 +2850,17 @@ elif export_type == "saved_model":
         fraction=0.1,
         device="cpu",
     )
+elif export_type == "litert":
+    model.export(
+        format="litert",
+        quantize=quantize,
+        imgsz=imgsz,
+        nms=nms,
+        batch=batch,
+        data=data_path,
+        fraction=0.1,
+        device="cpu",
+    )
 else:
     print("Unsupported export type")
 
