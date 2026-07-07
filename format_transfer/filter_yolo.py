@@ -89,7 +89,7 @@ def filter_yolo(
     txt_path: Path
     image_path: Path
     for txt_path, image_path in tqdm(
-        zip(txt_paths, image_paths), desc="filter txt files", original=len(txt_paths)
+        zip(txt_paths, image_paths), desc="filter txt files", total=len(txt_paths)
     ):
         try:
             has_obj = False
