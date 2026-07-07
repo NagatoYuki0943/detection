@@ -100,7 +100,7 @@ def filter_voc(
     xml_path: Path
     image_path: Path
     for xml_path, image_path in tqdm(
-        zip(xml_paths, image_paths), desc="filter xml files", original=len(xml_paths)
+        zip(xml_paths, image_paths), desc="filter xml files", total=len(xml_paths)
     ):
         try:
             with open(xml_path, "r", encoding="utf-8") as in_file:
